@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>라벨, 배치, 그리고 깁스 역설</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@400;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<script>try { const t = localStorage.getItem("netsci-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code','svg'] }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+<style>
+:root{
+  --bg:#F3F5F7; --panel:#FFFFFF; --ink:#1C2331; --muted:#5A6476; --rule:#D3D8DF; --faint:#E7EBF0;
+  --blue:#2766A8; --red:#C0392B; --full:#1C2331; --label:#8A5DB0; --arr:#2E7D4F; --trad:#B4581B; --hl:#F5E15A;
+  --serif:"Source Serif 4","Source Serif Pro","Noto Serif KR","Apple SD Gothic Neo",Georgia,serif;
+  --sans:"IBM Plex Sans","IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121722; --panel:#1A2030; --ink:#E5E9F0; --muted:#9AA4B5; --rule:#2D3546; --faint:#232B3C;
+    --blue:#69A6E6; --red:#EF6F5E; --full:#E5E9F0; --label:#B48DDA; --arr:#5CC38A; --trad:#EE9A5A; --hl:#6B5F1A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121722; --panel:#1A2030; --ink:#E5E9F0; --muted:#9AA4B5; --rule:#2D3546; --faint:#232B3C;
+  --blue:#69A6E6; --red:#EF6F5E; --full:#E5E9F0; --label:#B48DDA; --arr:#5CC38A; --trad:#EE9A5A; --hl:#6B5F1A;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{word-break:keep-all;margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:1.075rem;line-height:1.62;-webkit-text-size-adjust:100%}
+main{max-width:1140px;margin:0 auto;padding:0 1.25rem 4rem}
+.prose{max-width:44rem}
+h1,h2,h3{font-family:var(--serif);line-height:1.2;font-weight:700}
+h1{font-size:clamp(1.9rem,4.4vw,3rem);margin:1.6rem 0 .4rem;letter-spacing:-.01em;max-width:22ch}
+h2{font-size:1.6rem;margin:3.4rem 0 .6rem}
+h3{font-size:1.15rem;margin:1.6rem 0 .3rem}
+p{margin:.7rem 0}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.lede{font-size:1.18rem;color:var(--muted);max-width:42rem;margin:.2rem 0 1.4rem}
+.course{font-family:var(--sans);font-size:.92rem;color:var(--muted);margin:1.2rem 52px 0 0}
+.mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}
+button.theme-btn{position:fixed;z-index:20;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 12px);
+  width:40px;height:40px;padding:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;
+  background:var(--panel);color:var(--ink);border:1px solid var(--rule);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+button.theme-btn:hover{border-color:var(--ink)}
+button.theme-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:1.1rem 1.25rem;margin:1.2rem 0}
+.ui{font-family:var(--sans);font-size:.92rem}
+.ctl{margin:.2rem 0 .9rem}
+.ctl label{display:flex;justify-content:space-between;gap:1rem;font-weight:500}
+.ctl output{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:400}
+input[type=range]{width:100%;accent-color:var(--ink);margin:.35rem 0 0}
+button.pill{font-family:var(--sans);font-size:.86rem;border:1px solid var(--rule);background:var(--bg);color:var(--ink);border-radius:999px;padding:.36rem .9rem;cursor:pointer}
+button.pill:hover:not(:disabled){border-color:var(--ink)}
+button.pill:disabled{opacity:.4;cursor:default}
+button.pill.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.btnrow{display:flex;flex-wrap:wrap;gap:.45rem;margin:.6rem 0}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden;font-family:var(--sans);font-size:.86rem}
+.seg button{border:0;background:transparent;color:var(--ink);padding:.34rem .85rem;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.lab{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:1.4rem}
+@media (max-width:900px){.lab{grid-template-columns:1fr}}
+canvas.gas{width:100%;height:auto;display:block;border-radius:10px;background:var(--bg);border:1px solid var(--rule);touch-action:pan-y}
+.counts{font-family:var(--sans);font-size:.88rem;color:var(--muted);display:flex;justify-content:space-between;gap:1rem;margin:.4rem .1rem 0;font-variant-numeric:tabular-nums}
+.stage{font-family:var(--sans);font-size:.9rem;border-left:4px solid var(--hl);background:var(--bg);padding:.5rem .8rem;border-radius:0 8px 8px 0;margin:.6rem 0;min-height:4.6em}
+.stage b{display:block;margin-bottom:.15rem}
+.steps{display:flex;gap:.3rem;margin:.2rem 0 .5rem;font-family:var(--sans);font-size:.78rem;color:var(--muted);flex-wrap:wrap}
+.steps span{padding:.12rem .5rem;border-radius:999px;border:1px solid var(--rule)}
+.steps span.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.cols2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.2rem}
+@media (max-width:860px){.cols2{grid-template-columns:1fr}}
+.legend{display:flex;flex-wrap:wrap;gap:.3rem 1rem;font-family:var(--sans);font-size:.84rem;color:var(--muted);margin:.3rem 0}
+.legend .sw{display:inline-block;width:.8rem;height:.8rem;border-radius:2px;vertical-align:-1px;margin-right:.3rem}
+.legend .ln{display:inline-block;width:1.3rem;height:0;border-top:2.5px solid;vertical-align:3px;margin-right:.3rem}
+.legend .ln.d{border-top-style:dashed}
+.kv{font-family:var(--sans);font-size:.9rem;font-variant-numeric:tabular-nums;margin:.5rem 0;display:grid;grid-template-columns:auto auto;gap:.15rem 1rem;justify-content:start}
+.kv dt{color:var(--muted)} .kv dd{margin:0}
+.note{font-family:var(--sans);font-size:.86rem;color:var(--muted)}
+.tablewrap{overflow-x:auto;margin:1rem 0;border:1px solid var(--rule);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-family:var(--sans);font-size:.9rem;font-variant-numeric:tabular-nums}
+th,td{padding:.5rem .75rem;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-weight:600;color:var(--muted);font-size:.84rem}
+tbody tr:last-child td{border-bottom:0}
+svg text{font-family:var(--sans)}
+.stab{min-width:720px}
+.stab th,.stab td{text-align:center;vertical-align:middle;white-space:normal;padding:.6rem .7rem}
+.stab th:first-child,.stab td:first-child{text-align:left;color:var(--muted);font-weight:500;width:10.5rem}
+.stab thead th{font-size:.9rem}
+.stab td{font-family:var(--serif);font-size:1rem}
+.stab td.mini{padding:.4rem}
+svg.mini{width:100%;max-width:210px;height:auto;display:block;margin:0 auto}
+.langlink{font-family:var(--sans);font-size:.88rem;border:1px solid var(--rule);border-radius:999px;padding:.3rem .85rem;color:var(--ink);text-decoration:none;background:var(--bg);white-space:nowrap}
+.langlink:hover{border-color:var(--ink)}
+.topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.6rem 1rem;margin:1.2rem 52px 0 0}
+.topbar .course{margin:0}
+footer{border-top:1px solid var(--rule);margin-top:4rem;padding-top:1.4rem;font-family:var(--sans);font-size:.9rem;color:var(--muted)}
+footer p,footer ol{max-width:48rem}
+footer ol{padding-left:1.3rem}
+footer li{margin:.35rem 0}
+</style>
+</head>
+<body>
+<button id="themeBtn" class="theme-btn" type="button" aria-label="어두운 화면으로 전환"></button>
+<main>
+<header class="topbar">
+  <p class="course"><a href="https://lshlj82.github.io/statphys1-GNU/" style="color:inherit">통계물리 1</a> 보충 자료, 노승한 교수님(하버드 대학교)의 강의 노트와 발표를 바탕으로</p>
+  <a class="langlink" href="index.html" hreflang="en" lang="en">English</a>
+</header>
+<h1>라벨, 배치, 그리고 깁스 역설</h1>
+<p class="lede">같은 고전 기체 두 묶음을 섞으면, 거시적으로는 아무것도 변하지 않았는데도 교과서의 엔트로피는 \(2Nk_B\ln 2\)만큼 늘어납니다. 흔한 처방은 \(N!\)로 나누고 양자역학의 구별 불가능성을 근거로 듭니다. 여기서는 고전적인 해법을 보여줍니다. 라벨이 붙은 미시 상태를 하나도 버리지 않고, 엔트로피 가운데 어느 부분이 입자의 라벨을 기록하고 어느 부분이 실제로 관측하는 배치를 기록하는지 묻는 것입니다.</p>
+
+<section class="panel ui" aria-label="혼합 실험">
+  <div class="lab">
+    <div>
+      <canvas id="mixCanvas" class="gas" width="800" height="400" aria-label="구멍이 있는 벽으로 나뉜 두 상자의 기체 입자"></canvas>
+      <div class="counts"><span id="cntA"></span><span id="cntB"></span></div>
+      <div class="btnrow">
+        <button class="pill primary" id="bOpen">구멍 열기</button>
+        <button class="pill" id="bClose">구멍 닫기</button>
+        <button class="pill" id="bCount">상자별로 세기</button>
+        <button class="pill" id="bCheck">모든 라벨 읽기</button>
+        <button class="pill" id="bReset">처음으로</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center">
+        <div class="ctl" style="flex:1 1 14rem;margin:0"><label for="nMix"><span>상자당 입자 수 \(N\)</span> <output id="nMixOut"></output></label><input id="nMix" type="range" min="2" max="150" step="1" value="40"></div>
+        <button class="pill" id="bFast" aria-pressed="false">빨리 감기</button>
+        <button class="pill" id="bPauseMix">일시 정지</button>
+      </div>
+    </div>
+    <div>
+      <div class="seg" role="group" aria-label="색이 뜻하는 것" style="margin-bottom:.5rem"><button id="mSame" aria-pressed="true">같은 기체: 색은 라벨일 뿐</button><button id="mSpec" aria-pressed="false">서로 다른 두 종</button></div>
+      <div class="steps" id="steps"><span>1 시작</span><span>2 구멍 열림</span><span>3 닫힘</span><span>4 셈</span><span>5 라벨 읽음</span></div>
+      <div class="stage" id="stageText" aria-live="polite"></div>
+      <svg id="bars" viewBox="0 0 460 190" role="img" aria-label="시작 대비 엔트로피 변화"></svg>
+      <p class="note" style="margin:.2rem 0 0">1단계 대비 변화량이며 단위는 \(k_B\)입니다. 전체 엔트로피는 언제나 라벨링 엔트로피와 배치 엔트로피의 합입니다.</p>
+    </div>
+  </div>
+</section>
+
+<div class="prose">
+<h2>역설</h2>
+<p>부피 \(V\)인 두 상자에 각각 \(N\)개의 입자를 넣습니다. 고정된 기준 부피 \(v_0\)와 \(\tilde V = V/v_0\)를 쓰면, 입자들이 각자의 상자에 있다는 것을 아는 이상기체의 위치 엔트로피는 \(S_{\rm i} = 2Nk_B\ln\tilde V\)입니다. 구멍을 열면 모든 입자가 \(2V\) 어디에나 있을 수 있으므로</p>
+\[ S_{\rm m} = 2Nk_B\ln(2\tilde V) = S_{\rm i} + 2Nk_B\ln 2. \]
+</div>
+<div class="tablewrap">
+<table class="stab">
+  <thead><tr><th></th><th>처음 상태</th><th>혼합</th><th>나중 상태</th></tr></thead>
+  <tbody>
+    <tr><td>서로 다른 기체의 혼합</td><td class="mini"><svg class="mini" data-kind="diff-i" viewBox="0 0 210 100" role="img" aria-label="왼쪽 상자에 파란 기체, 오른쪽 상자에 빨간 기체"></svg></td><td class="mini"><svg class="mini" data-kind="diff-m" viewBox="0 0 210 100" role="img" aria-label="부피 2V에서 섞인 파랑과 빨강"></svg></td><td class="mini"><svg class="mini" data-kind="diff-f" viewBox="0 0 210 100" role="img" aria-label="벽을 다시 넣으면 각 상자에 섞인 기체"></svg></td></tr>
+    <tr><td>엔트로피</td><td>\(S_{\rm i} = 2Nk_B\ln\tilde V\)</td><td>\(S_{\rm m} = 2Nk_B\ln 2\tilde V > S_{\rm i}\)</td><td>\(S_{\rm f} = S_{\rm m}\) (열역학 제2법칙)</td></tr>
+    <tr><td>같은 기체의 혼합</td><td class="mini"><svg class="mini" data-kind="same-i" viewBox="0 0 210 100" role="img" aria-label="두 상자에 같은 기체"></svg></td><td class="mini"><svg class="mini" data-kind="same-m" viewBox="0 0 210 100" role="img" aria-label="부피 2V의 같은 기체"></svg></td><td class="mini"><svg class="mini" data-kind="same-f" viewBox="0 0 210 100" role="img" aria-label="벽을 다시 넣으면 처음 상태와 똑같아 보임"></svg></td></tr>
+    <tr><td>엔트로피</td><td>\(S_{\rm i} = 2Nk_B\ln\tilde V\)</td><td>\(S_{\rm m} = 2Nk_B\ln 2\tilde V > S_{\rm i}\)</td><td>\(S_{\rm f} = S_{\rm m}\,\)? 처음 상태와 똑같아 보입니다.</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="prose">
+<p>구멍을 닫아도 입자들의 위치에 대해 알게 되는 것이 없으므로 엔트로피는 \(S_{\rm m}\)에 머뭅니다. 빨강과 파랑 기체라면 이것은 익숙한 혼합 엔트로피입니다. 그런데 두 묶음이 같은 기체라면, 구멍을 닫으면 원래의 거시 상태로 돌아가는 것처럼 보입니다. 엔트로피가 정말 늘어난 것일까요? 균일한 기체에 칸막이를 넣기만 해도 엔트로피를 줄일 수 있을까요?</p>
+<p>양자역학적 처방은 같은 입자를 맞바꿔도 새로운 양자 상태가 생기지 않으므로 상태 수를 \(N!\)로 나눕니다. 이렇게 하면 같은 기체에서의 주된 증가분이 사라집니다. 하지만 이것이 전부일 수는 없습니다. 분자 동역학 시뮬레이션은 모든 고전 입자에 번호를 붙여 두고, 콜로이드 입자(우유 속 지방구, 페인트 속 안료 알갱이)는 실제로 구별할 수 있는데도 통계역학은 두 경우 모두에 잘 들어맞습니다.</p>
+<p>같은 입자에 대한 깁스 역설의 고전적 해결은 새로운 것이 아닙니다. 이미 출판된 논문들에 잘 정리되어 있으며, 특히 Swendsen의 논문들이 이를 명료하게 서술합니다. 아래 내용은 노승한 교수님의 강의 노트와 발표에 담긴, 그 해결의 정보 엔트로피 버전입니다.</p>
+
+<h2>“혼합 엔트로피”는 혼합 때문이 아니다</h2>
+<p>혼합 엔트로피에는 두 기체도, 심지어 두 입자도 필요하지 않습니다. 입자 하나를 같은 세 단계에 따라 따라가 봅시다. 같은 크기의 두 상자 중 왼쪽 상자에 입자를 넣고, 구멍을 열었다가, 들여다보지 않은 채 다시 닫습니다. \(b \in \{{\rm l}, {\rm r}\}\)를 입자가 있는 상자, \(\mathbf r\)를 그 안의 위치라 하면(부피는 \(v_0\) 단위) 다음과 같습니다.</p>
+</div>
+<div class="tablewrap">
+<table class="stab">
+  <thead><tr><th></th><th>처음 상태</th><th>혼합</th><th>나중 상태</th></tr></thead>
+  <tbody>
+    <tr><td>기체 입자 하나의 팽창</td><td class="mini"><svg class="mini" data-kind="one-i" viewBox="0 0 210 100" role="img" aria-label="왼쪽 상자의 입자 하나"></svg></td><td class="mini"><svg class="mini" data-kind="one-m" viewBox="0 0 210 100" role="img" aria-label="부피 2V의 입자 하나"></svg></td><td class="mini"><svg class="mini" data-kind="one-f" viewBox="0 0 210 100" role="img" aria-label="벽을 다시 넣으면 어느 상자에 입자가 있는지 모름"></svg></td></tr>
+    <tr><td>확률 밀도</td><td>\(\rho_{\rm i}(\mathbf r) = 1/V\)</td><td>\(\rho_{\rm m}(\mathbf r) = 1/(2V)\)</td><td>\(\rho_{\rm f}(b,\mathbf r) = \dfrac12\,\dfrac1V\)</td></tr>
+    <tr><td>엔트로피</td><td>\(\begin{aligned} S_{\rm i} &= -k_B\!\int\! d\mathbf r\,\rho_{\rm i}\ln\rho_{\rm i} \\ &= k_B\ln\tilde V \end{aligned}\)</td><td>\(S_{\rm m} = k_B\ln 2\tilde V\)</td><td>\(\begin{aligned} S_{\rm f} &= -k_B\!\sum_{b={\rm l,r}}\int_{\mathbf r\in b}\! d\mathbf r\,\rho_{\rm f}\ln\rho_{\rm f} \\ &= k_B\ln 2\tilde V \end{aligned}\)</td></tr>
+    <tr><td>엔트로피 (입자 \(N\)개)</td><td>\(Nk_B\ln\tilde V\)</td><td>\(Nk_B\ln 2\tilde V\)</td><td>\(Nk_B\ln 2\tilde V\)</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="prose">
+<p>나중 엔트로피는 두 부분으로 나뉩니다.</p>
+\[ S_{\rm f} = \underbrace{k_B\ln 2}_{\text{어느 상자?}} + \underbrace{k_B\ln\tilde V}_{\text{상자 안 어디?}} = S_{\rm m} \]
+<p>늘어난 \(k_B\ln 2\)는 상자에 대한 불확실성이지, 혼합의 효과가 아닙니다. 여기에는 두 번째 기체가 없습니다. 들여다보고 입자를 찾으면 엔트로피는 \(k_B\ln\tilde V\)로 돌아갑니다. 줄어든 것은 벽을 넣는 역학적 행위 때문이 아니라 정보를 얻었기 때문입니다. 입자 \(2N\)개가 각각 상자에 대한 정보 1비트를 잃으면 전체 엔트로피는 정확히 \(2Nk_B\ln 2\)만큼 늘어납니다.</p>
+
+<h2>라벨링 엔트로피와 배치 엔트로피</h2>
+<p>핵심 도구는 엔트로피의 연쇄 법칙입니다. 확률 변수 \(X\)와 \(Y\)에 대해 \(p(x,y) = p(x|y)\,p(y)\)로부터</p>
+\[ S(X,Y) = S(X|Y) + S(Y) \]
+<p>를 얻습니다. 여기서 \(S(X|Y)\)는 \(Y\)를 안 뒤에도 \(X\)에 남는 불확실성입니다. 이제 부피 \(V_1\)과 \(V_2\)인 영역에 구별 가능한 입자 \(N\)개가 있고, 어떤 입자인지는 모른 채 개수 \(N_1\)과 \(N_2 = N - N_1\)만 안다고 합시다. 첫 영역에 들어갈 라벨 집합 \(L\)은 \(\binom{N}{N_1}\)가지이고, 모두 같은 위치 부피 \(V_1^{N_1}V_2^{N_2}\)를 허용합니다. 어느 것을 선호할 근거가 없으므로 최대 엔트로피 원리(MaxEnt)에 따라 각각의 확률은 \(\binom{N}{N_1}^{-1}\)이고, 전체 위치 엔트로피는 다음과 같습니다.</p>
+\[ S_{\rm full} = k_B\ln\binom{N}{N_1} + N_1k_B\ln\tilde V_1 + N_2k_B\ln\tilde V_2 = \underbrace{k_B\ln N!}_{S_{\rm label}} + \underbrace{k_B\ln\!\left[\frac{\tilde V_1^{N_1}}{N_1!}\,\frac{\tilde V_2^{N_2}}{N_2!}\right]}_{S_{\rm arr}} \]
+<p>버린 미시 상태는 하나도 없습니다. 라벨이 붙은 각 배열은 정확히 하나의 할당 \(L\)에 속합니다. <strong>라벨링 엔트로피</strong> \(k_B\ln N!\)는 라벨 없는 배치에 입자의 정체를 붙이는 방법의 수를 셉니다. 전체 \(N\)이 고정되어 있으므로 입자가 영역 사이를 오가도 변하지 않습니다. 나머지가 <strong>배치 엔트로피</strong>이며, 유명한 \(1/N!\)가 이미 들어 있습니다. 고전적 미시 상태들을 같다고 보라는 지시가 아니라, 라벨을 기록하지 않는 대가로서입니다.</p>
+<p>혼합 실험으로 돌아가면, 처음에는 각 상자에 어떤 \(N\)개의 라벨이 있는지 정해져 있으므로 라벨 할당은 \((N!)^2\)가지입니다. 섞인 뒤에는 \((2N)!\)가지가 모두 가능합니다.</p>
+\[ \Delta S_{\rm label} = k_B\ln\frac{(2N)!}{(N!)^2} = 2Nk_B\ln 2 - \tfrac12 k_B\ln(\pi N) + \cdots, \qquad \Delta S_{\rm arr} = 2Nk_B\ln 2 - \Delta S_{\rm label} \approx \tfrac12 k_B\ln(\pi N) \]
+<p>주된 증가분은 잃어버린 라벨 정보입니다. 배치 엔트로피는 \(\ln N\) 차수만큼만 변하는데, 이는 정확히 알던 처음 개수와 요동하는 나중 개수를 비교하는 데서 나옵니다. 위 데모에서 <b>모든 라벨 읽기</b>를 누르면, 잃었던 정보를 되찾는 순간 전체 엔트로피가 0으로 돌아가는 것을 볼 수 있습니다.</p>
+</div>
+
+<div class="panel ui">
+  <svg id="plotN" viewBox="0 0 1000 300" role="img" aria-label="N에 따라 라벨과 배치가 차지하는 혼합 엔트로피의 비율"></svg>
+  <div class="legend"><span><span class="ln" style="border-color:var(--label)"></span>\(\Delta S_{\rm label}/(2Nk_B\ln 2)\)</span><span><span class="ln" style="border-color:var(--arr)"></span>\(\Delta S_{\rm arr}/(2Nk_B\ln 2)\)</span><span><span class="sw" style="background:var(--hl);border-radius:50%"></span>데모의 \(N\)</span></div>
+  <p class="note" style="margin:0">\(N\)이 커지면 혼합 엔트로피는 사실상 전부 라벨링 엔트로피가 됩니다. 지방구가 약 \(10^{12}\)개인 우유 1리터라면, \(2Nk_B\ln 2 \approx 1.4\times10^{12}\,k_B\) 가운데 \(\Delta S_{\rm arr}\)는 약 \(14\,k_B\)에 불과합니다.</p>
+</div>
+
+<div class="prose">
+<h3>색이 물리적인 차이일 때</h3>
+<p>데모를 <b>서로 다른 두 종</b>으로 바꿔 보세요. 이제 빨강과 파랑은 구별되는 종이므로 배치가 각 색의 위치를 기록합니다. 같은 색 안의 정체만 기록하지 않으므로 \(S_{\rm label} = k_B\ln(N_{\rm r}!\,N_{\rm b}!)\)는 일정하고, \(2Nk_B\ln 2\) 전체가 배치 엔트로피에 나타납니다. 진짜 혼합입니다. 두 모드에서 전체 엔트로피가 같다는 점에 주목하세요. 빨간 색조가 파랑으로 연속적으로 바래 간다고 상상해 보면, 전체 엔트로피는 결코 불연속적으로 변하지 않습니다. 불연속적으로 바뀌는 것은 배치가 무엇을 기록할지에 대한 우리의 선택, 곧 두 색에서 한 색으로의 전환입니다. 깁스 역설의 "불연속"은 물리가 아니라 기술 방식의 변화에 있습니다.</p>
+
+<h2>입자 교환: 기체가 고르게 퍼지는 이유</h2>
+<p>라벨이 붙은 입자 \(N\)개가 영역 \(V_1\)과 \(V_2\) 사이를 오가게 하고, 어느 입자가 어디에 있는지 안다고 가정한 엔트로피만 최대화하면</p>
+\[ S_{\rm specified} = N_1k_B\ln\tilde V_1 + N_2k_B\ln\tilde V_2, \qquad \frac{dS_{\rm specified}}{dN_1} = k_B\ln\frac{V_1}{V_2} \]
+<p>이 도함수는 \(V_1 \ne V_2\)일 때 결코 0이 되지 않습니다. 모든 입자가 더 큰 영역으로 몰려야 한다는 뜻입니다. 이것은 실제로 물은 것보다 더 자세한 질문에 대한 답입니다. 알지 못하는 라벨 할당을 세면 \(k_B\ln\binom{N}{N_1}\)가 더해지고, 나뉨의 확률은 이항 분포가 됩니다.</p>
+\[ P(N_1) = \binom{N}{N_1}\left(\frac{V_1}{V_1+V_2}\right)^{N_1}\left(\frac{V_2}{V_1+V_2}\right)^{N_2}, \qquad S_{\rm arr}(N_1) = k_B\ln P(N_1) + k_B\ln\frac{\tilde V^N}{N!} \]
+<p>이 분포는 \(N_1/V_1 = N_2/V_2\)에서 최대입니다. 두 번째 관계식은 Swendsen이 해석한 볼츠만의 정의, 곧 엔트로피를 복합계 거시 상태의 확률의 로그(상수 차이를 제외하고)로 보는 관점입니다. 아래 시뮬레이션은 모든 입자에 번호를 붙여 두고 상자에 가상의 선을 긋습니다. 입자들은 더 큰 쪽에 모이지 않습니다.</p>
+</div>
+
+<section class="panel ui" aria-label="입자 교환">
+  <div class="cols2">
+    <div>
+      <canvas id="exCanvas" class="gas" width="800" height="400" aria-label="가상의 칸막이가 있는 라벨 붙은 기체 입자"></canvas>
+      <div class="counts"><span id="exN1"></span><span id="exN2"></span></div>
+      <div class="ctl" style="margin-top:.6rem"><label for="fEx"><span>영역 1의 부피 비율 \(V_1/V\)</span> <output id="fExOut"></output></label><input id="fEx" type="range" min="0.15" max="0.85" step="0.01" value="0.30"></div>
+      <div class="ctl"><label for="nEx"><span>전체 입자 수 \(N\)</span> <output id="nExOut"></output></label><input id="nEx" type="range" min="10" max="300" step="2" value="80"></div>
+      <div class="btnrow"><button class="pill" id="bPauseEx">일시 정지</button><button class="pill" id="bClearEx">히스토그램 지우기</button></div>
+    </div>
+    <div>
+      <svg id="plotP" viewBox="0 0 520 280" role="img" aria-label="영역 1의 입자 수 히스토그램과 이항 분포"></svg>
+      <div class="legend"><span><span class="sw" style="background:var(--blue);opacity:.55"></span>시뮬레이션 (표본 <span id="exSamples">0</span>개)</span><span><span class="ln" style="border-color:var(--ink)"></span>이항 분포 \(P(N_1)\)</span></div>
+      <svg id="plotS" viewBox="0 0 520 280" role="img" aria-label="N1에 따른 specified 엔트로피와 배치 엔트로피"></svg>
+      <div class="legend"><span><span class="ln" style="border-color:var(--trad)"></span>\(S_{\rm specified}\) (라벨을 안다고 가정)</span><span><span class="ln" style="border-color:var(--arr)"></span>\(S_{\rm arr}\) (라벨을 기록하지 않음)</span></div>
+      <dl class="kv">
+        <dt>\(S_{\rm arr}\)로 구한 가장 그럴듯한 \(N_1\)</dt><dd id="exMax"></dd>
+        <dt>\(S_{\rm specified}\)의 최대</dt><dd id="exSpec"></dd>
+        <dt>시뮬레이션의 \(N_1\) 평균</dt><dd id="exAvg"></dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<div class="prose">
+<h2>콜로이드: 전통적인 엔트로피가 틀리는 곳</h2>
+<p>Swendsen은 콜로이드가 이 문제를 구체적으로 보여준다고 지적했습니다. 균질화한 우유 1리터에는 지방구가 약 \(10^{12}\)개 들어 있습니다. 고전적으로 다룰 만큼 크고 서로 구별할 수 있을 만큼 다르므로, \(1/N!\)가 없는 "전통적인" 엔트로피 \(S_{\rm trad} = Nk_B[\ln V + \tfrac32\ln(E/N) + X]\)가 자연스러워 보입니다. 하지만 이 엔트로피는 틀린 예측을 합니다.</p>
+<p><strong>균일한 우유에서 벽 치우기.</strong> 양쪽 밀도가 같을 때 \(\Delta S_{\rm trad} = N_1k_B\ln(V/V_1) + N_2k_B\ln(V/V_2) > 0\)이고, 절반씩이면 약 \(7\times10^{11}\,k_B\)입니다. 벽을 다시 넣으면 같은 거시 상태로 돌아가므로 전통적인 엔트로피는 줄어들어야 합니다. 배치 엔트로피는 \(-k_B\ln P(N_1) \approx 14\,k_B\)만 변하는데, 이는 정확한 개수를 더 이상 모르게 된 데 따른 작은(하위 차수) 대가입니다.</p>
+<p><strong>전유와 탈지유를 일부만 섞기.</strong> 더 큰 부피 \(V_1\)에 전유, \(V_2\)에 탈지유를 넣고, 구멍을 잠깐 열었다가 다 섞이기 전에 닫습니다. 지방구 \(N_2\)개가 건너갔다면, 명백히 비가역적인 과정인데도 전통적인 엔트로피는 \(-N_2k_B\ln(V_1/V_2) < 0\)만큼 변합니다. \(x = N_2/N\)이라 하면 배치 엔트로피의 변화는</p>
+\[ \frac{\Delta S_{\rm arr}}{Nk_B} = -x\ln x - (1-x)\ln(1-x) - x\ln\frac{V_1}{V_2} > 0 \]
+<p>이고, 열역학 제2법칙이 요구하는 대로 평형 \(x = V_2/V\)까지 커집니다.</p>
+</div>
+<div class="panel ui">
+  <div class="cols2">
+    <div>
+      <svg id="plotMilk" viewBox="0 0 520 320" role="img" aria-label="작은 부피로 건너간 비율에 따른 지방구당 엔트로피 변화"></svg>
+      <div class="legend"><span><span class="ln" style="border-color:var(--trad)"></span>전통적 \(\Delta S_{\rm trad}/(Nk_B)\)</span><span><span class="ln" style="border-color:var(--arr)"></span>배치 \(\Delta S_{\rm arr}/(Nk_B)\)</span></div>
+    </div>
+    <div>
+      <div class="ctl"><label for="fMilk"><span>전유 쪽 부피 비율 \(V_1/V\)</span> <output id="fMilkOut"></output></label><input id="fMilk" type="range" min="0.55" max="0.95" step="0.01" value="0.70"></div>
+      <div class="ctl"><label for="xMilk"><span>건너간 지방구 비율 \(x = N_2/N\)</span> <output id="xMilkOut"></output></label><input id="xMilk" type="range" min="0" max="1" step="0.001" value="0.15"></div>
+      <dl class="kv">
+        <dt>\(\Delta S_{\rm trad}/(Nk_B)\)</dt><dd id="milkTrad"></dd>
+        <dt>\(\Delta S_{\rm arr}/(Nk_B)\)</dt><dd id="milkArr"></dd>
+        <dt>평형 \(x = V_2/V\)</dt><dd id="milkEq"></dd>
+      </dl>
+      <p class="note">슬라이더는 평형에서 멈춥니다. 비가역 과정 내내 전통적인 엔트로피는 줄어들고, 배치 엔트로피는 늘어나 정확히 평형에서 최대가 됩니다.</p>
+    </div>
+  </div>
+</div>
+
+<div class="prose">
+<h2>정리</h2>
+<p>역학과 제약 조건이 모든 라벨을 대칭적으로 다룰 때, 전체 정보 엔트로피는 다음과 같이 나뉩니다.</p>
+\[ S_{\rm full} = S_{\rm arr} + k_B\ln N! \]
+<p>전체 엔트로피는 라벨이 붙은 고전 미시 상태를 모두 유지하며 초크기 성질(superextensive)을 띱니다. 배치 엔트로피는 주된 차수에서 크기 성질(extensive)을 띠며, 이상기체에서는 자쿠어–테트로데 식이 됩니다.</p>
+\[ S_{\rm arr}(E,V,N) = Nk_B\left\{\ln\!\left[\frac{V}{N}\left(\frac{4\pi mE}{3Nh^2}\right)^{3/2}\right] + \frac52\right\} + O(k_B\ln N) \]
+<p>두 엔트로피는 경쟁 관계가 아니라, 서로 다른 정보를 유지하는 질문에 대한 답입니다. 라벨이 제약 조건과 관측량에 무관할 때는 배치 엔트로피가 알맞고, 입자의 정체가 중요해지면 라벨 정보를 되살려야 합니다. 정보 엔트로피는 우리가 아는 것에 의존한다는 제한된 의미에서 주관적이지만, 임의적이지는 않습니다. 유지할 정보가 정해지면 최대 엔트로피 원리가 확률 할당을 하나로 정합니다.</p>
+</div>
+
+<footer>
+<p>이 페이지는 노승한 교수님(하버드 대학교)의 강의 노트 “Typicality and the Gibbs Paradox”(7강)와 한국물리학회 가을 학술논문발표회(2026년 10월) 발표 자료를 바탕으로 Claude Opus 5.5(Anthropic)가 만들었습니다. 설명, 수치 결과, 인터랙티브 그림은 모델이 생성한 것이므로 아래 참고문헌과 함께 읽기 바랍니다. 이 페이지는 <a href="https://lshlj82.github.io/statphys1-GNU/">통계물리 1 인터랙티브 데모</a> 중 데모 5 “큰 계와 엔트로피”의 보충 자료입니다. 소스 코드: GitHub의 <a href="https://github.com/lshlj82/Gibbs-paradox-by-ProfRo">Gibbs-paradox-by-ProfRo</a>.</p>
+<ol>
+  <li>S. Ro, lecture notes, Chapter 3, “Microscopic dynamics and the foundations of statistical mechanics,” Section 3.4, “Typicality and the Gibbs paradox.”</li>
+  <li>S. Ro, presentation slides on the Gibbs paradox, Korean Physical Society Fall Meeting (October 2026).</li>
+  <li>R. H. Swendsen, “Statistical mechanics of colloids and Boltzmann’s definition of the entropy,” <em>American Journal of Physics</em> <strong>74</strong>, 187–190 (2006).</li>
+  <li>R. H. Swendsen, “Statistical mechanics of classical systems of distinguishable particles,” <em>Journal of Statistical Physics</em> <strong>107</strong>, 1143–1165 (2002), (참고문헌 3에서 재인용).</li>
+  <li>L. Boltzmann, “Über die Beziehung zwischen dem zweiten Hauptsatze der mechanischen Wärmetheorie und der Wahrscheinlichkeitsrechnung respektive den Sätzen über das Wärmegleichgewicht,” <em>Wiener Berichte</em> <strong>76</strong>, 373–435 (1877), (참고문헌 3에서 재인용).</li>
+</ol>
+</footer>
+</main>
+
+<script>
+(function(){
+const NS = 'http://www.w3.org/2000/svg';
+const $ = id => document.getElementById(id);
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+function el(tag, attrs, parent, text){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+/* ---------- language ---------- */
+const KO = document.documentElement.lang === 'ko';
+const T = KO ? {
+  boxA:'상자 A', boxB:'상자 B', blue:'파랑', red:'빨강', full:'전체', label:'라벨링', arr:'배치', pause:'일시 정지', play:'재생',
+  xN:'상자당 입자 수 N', yN:'2N k_{B} ln 2에 대한 비율', xN1:'영역 1의 입자 수 N_{1}', yP:'확률', yS:'S − S_{max} (단위 k_{B})',
+  all1: N => `N₁ = ${N} (모두 영역 1에)`, all2:'N₁ = 0 (모두 영역 2에)', flat:'평평함', reg1:'영역 1', reg2:'영역 2',
+  xMilk:'건너간 비율 x = N_{2}/N', yMilk:'ΔS / (N k_{B})'
+} : {
+  boxA:'Box A', boxB:'Box B', blue:'blue', red:'red', full:'Full', label:'Labeling', arr:'Arrangement', pause:'Pause', play:'Play',
+  xN:'Particles per box N', yN:'Fraction of 2N k_{B} ln 2', xN1:'Particles in region 1, N_{1}', yP:'Probability', yS:'S − S_{max} (units of k_{B})',
+  all1: N => `N₁ = ${N} (all in region 1)`, all2:'N₁ = 0 (all in region 2)', flat:'flat', reg1:'Region 1', reg2:'Region 2',
+  xMilk:'Fraction crossed, x = N_{2}/N', yMilk:'ΔS / (N k_{B})'
+};
+
+/* ---------- mini diagrams ---------- */
+function drawMinis(){
+  let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+  const dots = (g, n, x0, x1, col) => { for (let i=0;i<n;i++) el('circle',{cx:(x0+6+rnd()*(x1-x0-12)).toFixed(1), cy:(16+rnd()*72).toFixed(1), r:4, style:`fill:${col}`}, g); };
+  const box = (g, x, w) => el('rect',{x, y:10, width:w, height:84, style:'fill:none;stroke:var(--ink);stroke-width:2'}, g);
+  const lab = (g, x, t) => el('text',{x, y:88, 'text-anchor':'end', 'font-size':12, 'font-style':'italic', style:'fill:var(--muted)'}, g, t);
+  const q = (g, x) => el('text',{x, y:60, 'text-anchor':'middle', 'font-size':24, 'font-weight':600, style:'fill:var(--red)'}, g, '?');
+  document.querySelectorAll('svg.mini').forEach(svg => {
+    const k = svg.dataset.kind, g = el('g', {}, svg), B = 'var(--blue)', R = 'var(--red)';
+    if (k.endsWith('-i')){ box(g, 6, 90); box(g, 114, 90); lab(g, 92, 'V'); lab(g, 200, 'V');
+      if (k === 'diff-i'){ dots(g, 6, 6, 96, B); dots(g, 6, 114, 204, R); }
+      else if (k === 'same-i'){ dots(g, 6, 6, 96, B); dots(g, 6, 114, 204, B); }
+      else el('circle',{cx:40, cy:52, r:5, style:`fill:${R}`}, g); }
+    else if (k.endsWith('-m')){ box(g, 6, 198); lab(g, 200, '2V');
+      if (k === 'diff-m'){ dots(g, 6, 6, 204, B); dots(g, 6, 6, 204, R); }
+      else if (k === 'same-m') dots(g, 12, 6, 204, B);
+      else el('circle',{cx:128, cy:46, r:5, style:`fill:${R}`}, g); }
+    else { box(g, 6, 99); box(g, 105, 99); lab(g, 101, 'V'); lab(g, 200, 'V');
+      if (k === 'diff-f'){ dots(g, 3, 6, 105, B); dots(g, 3, 6, 105, R); dots(g, 3, 105, 204, B); dots(g, 3, 105, 204, R); }
+      else if (k === 'same-f'){ dots(g, 6, 6, 105, B); dots(g, 6, 105, 204, B); }
+      else { q(g, 55); q(g, 155); } }
+  });
+}
+
+/* ---------- math ---------- */
+const LF = [0]; for (let i=1;i<=20000;i++) LF[i] = LF[i-1] + Math.log(i);
+const lnf = n => n <= 20000 ? LF[n] : n*Math.log(n) - n + 0.5*Math.log(2*Math.PI*n) + 1/(12*n) - 1/(360*n*n*n);
+const lnC = (n, k) => lnf(n) - lnf(k) - lnf(n-k);
+const LN2 = Math.log(2);
+
+/* ---------- plotting ---------- */
+function niceTicks(a, b, n){
+  const span = b - a; if (span <= 0) return [a];
+  const raw = span/n, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1,2,2.5,5,10].map(m=>m*mag).find(s=>s>=raw) || 10*mag;
+  const out = []; for (let t = Math.ceil(a/step)*step; t <= b + 1e-9*step; t += step) out.push(+t.toFixed(10));
+  return out;
+}
+function plot(svg, o){
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const vb = svg.viewBox.baseVal, W = vb.width, H = vb.height, m = {l:58, r:14, t:14, b:46};
+  const tx = o.xlog ? (x => Math.log10(x)) : (x => x);
+  const x0 = tx(o.xmin), x1 = tx(o.xmax);
+  const X = x => m.l + (tx(x) - x0)/(x1 - x0)*(W - m.l - m.r);
+  const Y = y => H - m.b - (y - o.ymin)/(o.ymax - o.ymin)*(H - m.t - m.b);
+  const g = el('g', {}, svg);
+  const xt = o.xlog ? (()=>{ const a=[]; for (let e=Math.ceil(x0); e<=x1+1e-9; e++) a.push(Math.pow(10,e)); return a; })() : (o.xticks || niceTicks(o.xmin, o.xmax, 6));
+  xt.forEach(t=>{
+    el('line',{x1:X(t),x2:X(t),y1:m.t,y2:H-m.b,style:'stroke:var(--faint);stroke-width:1'},g);
+    el('text',{x:X(t),y:H-m.b+16,'text-anchor':'middle','font-size':12,style:'fill:var(--muted)'},g, o.xlog ? (t<1e4 ? String(t) : '10'+String(Math.round(Math.log10(t))).replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d])) : String(t));
+  });
+  niceTicks(o.ymin, o.ymax, o.yticks || 5).forEach(t=>{
+    el('line',{x1:m.l,x2:W-m.r,y1:Y(t),y2:Y(t),style:'stroke:var(--faint);stroke-width:1'},g);
+    el('text',{x:m.l-7,y:Y(t)+4,'text-anchor':'end','font-size':12,style:'fill:var(--muted)'},g,String(t));
+  });
+  if (o.ymin < 0 && o.ymax > 0) el('line',{x1:m.l,x2:W-m.r,y1:Y(0),y2:Y(0),style:'stroke:var(--muted);stroke-width:1'},g);
+  else el('line',{x1:m.l,x2:W-m.r,y1:H-m.b,y2:H-m.b,style:'stroke:var(--muted);stroke-width:1'},g);
+  const lab = (t, str) => str.split(/(_\{[^}]*\})/).forEach(part=>{
+    if (part.startsWith('_{')) el('tspan',{'baseline-shift':'sub','font-size':10},t,part.slice(2,-1));
+    else if (part) el('tspan',{},t,part); });
+  lab(el('text',{x:(m.l+W-m.r)/2,y:H-8,'text-anchor':'middle','font-size':13,style:'fill:var(--ink)'},g), o.xlabel);
+  lab(el('text',{x:14,y:(m.t+H-m.b)/2,'text-anchor':'middle','font-size':13,transform:`rotate(-90 14 ${(m.t+H-m.b)/2})`,style:'fill:var(--ink)'},g), o.ylabel);
+  const clip = 'c'+Math.random().toString(36).slice(2);
+  const cp = el('clipPath',{id:clip}, el('defs',{},svg)); el('rect',{x:m.l,y:m.t-2,width:W-m.l-m.r,height:H-m.t-m.b+4},cp);
+  const gc = el('g',{'clip-path':`url(#${clip})`}, svg);
+  (o.bars||[]).forEach(b=>{ el('rect',{x:X(b.x-b.w/2),y:Y(b.y),width:Math.max(0.5, X(b.x+b.w/2)-X(b.x-b.w/2)),height:Math.max(0, Y(o.ymin)-Y(b.y)),style:`fill:${b.color};opacity:${b.op||1}`},gc); });
+  (o.series||[]).forEach(s=>{
+    const pts = s.pts.filter(p=>isFinite(p[1])); if (!pts.length) return;
+    el('path',{d:pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(2)+','+Y(p[1]).toFixed(2)).join(''),style:`fill:none;stroke:${s.color};stroke-width:${s.width||2.2};${s.dash?'stroke-dasharray:'+s.dash:''}`},gc);
+  });
+  (o.vlines||[]).forEach(v=>el('line',{x1:X(v.x),x2:X(v.x),y1:m.t,y2:H-m.b,style:`stroke:${v.color};stroke-width:1.5;stroke-dasharray:4 3`},gc));
+  (o.points||[]).forEach(p=>el('circle',{cx:X(p.x),cy:Y(p.y),r:p.r||4,style:`fill:${p.color};stroke:var(--panel);stroke-width:1.5`},gc));
+  return {X, Y, g:gc};
+}
+
+/* ---------- gas simulation (ideal gas, no particle collisions) ---------- */
+function Gas(canvas, cfg){
+  this.c = canvas; this.ctx = canvas.getContext('2d'); this.cfg = cfg; this.running = true; this.fast = false;
+  this.W = 2; this.H = 1; this.x=[]; this.y=[]; this.vx=[]; this.vy=[]; this.g=[];
+}
+Gas.prototype.init = function(groups){ // groups: array of {n, xmin, xmax, g}
+  this.x=[]; this.y=[]; this.vx=[]; this.vy=[]; this.g=[];
+  groups.forEach(G => { for (let i=0;i<G.n;i++){
+    this.x.push(G.xmin + 0.01 + Math.random()*(G.xmax - G.xmin - 0.02)); this.y.push(0.01 + Math.random()*0.98);
+    const u = Math.max(1e-9, Math.random()), s = 0.32*Math.sqrt(-2*Math.log(u)), th = 2*Math.PI*Math.random();
+    this.vx.push(s*Math.cos(th)); this.vy.push(s*Math.sin(th)); this.g.push(G.g);
+  }});
+};
+Gas.prototype.step = function(dt){
+  const c = this.cfg, mid = 1, wall = c.wall && c.wall(), hole = c.holeOpen && c.holeOpen(), h0 = 0.33, h1 = 0.67;
+  for (let i=0;i<this.x.length;i++){
+    let nx = this.x[i] + this.vx[i]*dt, ny = this.y[i] + this.vy[i]*dt;
+    if (nx < 0){ nx = -nx; this.vx[i] = -this.vx[i]; } else if (nx > this.W){ nx = 2*this.W - nx; this.vx[i] = -this.vx[i]; }
+    if (ny < 0){ ny = -ny; this.vy[i] = -this.vy[i]; } else if (ny > this.H){ ny = 2*this.H - ny; this.vy[i] = -this.vy[i]; }
+    if (wall && (this.x[i] - mid)*(nx - mid) < 0){
+      const yc = this.y[i] + (ny - this.y[i])*(mid - this.x[i])/(nx - this.x[i]);
+      if (!(hole && yc > h0 && yc < h1)){ nx = 2*mid - nx; this.vx[i] = -this.vx[i]; }
+    }
+    this.x[i] = nx; this.y[i] = ny;
+  }
+};
+Gas.prototype.size = function(){
+  const r = this.c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  const w = Math.max(200, Math.round(r.width*dpr)), h = Math.round(w/2);
+  if (this.c.width !== w || this.c.height !== h){ this.c.width = w; this.c.height = h; }
+};
+Gas.prototype.draw = function(){
+  this.size();
+  const ctx = this.ctx, w = this.c.width, h = this.c.height, s = w/this.W, dpr = window.devicePixelRatio || 1;
+  ctx.clearRect(0,0,w,h);
+  const c = this.cfg, ink = css('--ink'), muted = css('--muted');
+  if (c.wall && c.wall()){
+    ctx.fillStyle = ink; const ww = 4*dpr;
+    if (c.holeOpen && c.holeOpen()){ ctx.fillRect(s-ww/2, 0, ww, 0.33*h); ctx.fillRect(s-ww/2, 0.67*h, ww, 0.33*h); }
+    else ctx.fillRect(s-ww/2, 0, ww, h);
+  }
+  if (c.partition){ const xp = c.partition()*s; ctx.strokeStyle = muted; ctx.lineWidth = 1.5*dpr; ctx.setLineDash([6*dpr, 5*dpr]);
+    ctx.beginPath(); ctx.moveTo(xp, 0); ctx.lineTo(xp, h); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = muted; ctx.font = `${12*dpr}px ${css('--sans')}`; ctx.fillText('V₁', 8*dpr, 18*dpr); ctx.fillText('V₂', xp + 8*dpr, 18*dpr); }
+  const cols = [css('--blue'), css('--red'), css('--ink')], r = Math.max(2.4, Math.min(4.2, 900/Math.sqrt(this.x.length+50)/30))*dpr;
+  for (let i=0;i<this.x.length;i++){ ctx.fillStyle = cols[this.g[i]]; ctx.beginPath(); ctx.arc(this.x[i]*s, (1-this.y[i])*h, r, 0, 2*Math.PI); ctx.fill(); }
+};
+
+/* ---------- mixing experiment ---------- */
+const MX = { N:40, stage:0, mode:'same', counted:null };
+const mix = new Gas($('mixCanvas'), { wall:()=>true, holeOpen:()=>MX.stage === 1 });
+function mixReset(){ MX.stage = 0; MX.counted = null; mix.init([{n:MX.N, xmin:0, xmax:1, g:0},{n:MX.N, xmin:1, xmax:2, g:1}]); mixUI(); }
+function mixCounts(){ let a=0, ab=0, ar=0; for (let i=0;i<mix.x.length;i++) if (mix.x[i] < 1){ a++; if (mix.g[i]===0) ab++; else ar++; } return {a, ab, ar, b:2*MX.N - a}; }
+function entropies(){
+  const N = MX.N, st = MX.stage, same = MX.mode === 'same', C = MX.counted || mixCounts();
+  if (st === 0) return {full:0, label:0, arr:0};
+  if (st === 1 || st === 2) return same ? {full:2*N*LN2, label:lnC(2*N,N), arr:2*N*LN2 - lnC(2*N,N)} : {full:2*N*LN2, label:0, arr:2*N*LN2};
+  if (st === 3){
+    if (same){ const full = lnC(2*N, C.a), label = lnC(2*N, N); return {full, label, arr:full-label}; }
+    const full = lnC(N, C.ab) + lnC(N, C.ar); return {full, label:0, arr:full};
+  }
+  const label = same ? lnf(C.a) + lnf(C.b) - 2*lnf(N) : lnf(C.ab) + lnf(N-C.ab) + lnf(C.ar) + lnf(N-C.ar) - 2*lnf(N);
+  return {full:0, label, arr:-label};
+}
+const STAGES = {
+  same: [
+    ['Start: the labels in each box are known.', 'Each box holds <i>N</i> particles in volume <i>V</i>, and we know which <i>N</i> labels are in each. This is our reference point.'],
+    ['Hole open: every particle may be anywhere in 2<i>V</i>.', 'Once the gas has had time to spread, the equilibrium description puts every particle anywhere in the combined volume. The full entropy gains 2<i>N</i>&thinsp;<i>k</i><sub>B</sub>&thinsp;ln 2. Almost all of it is labeling entropy: we no longer know which labels are on which side. The arrangement entropy barely changes.'],
+    ['Hole closed, nobody looked.', 'Closing the hole supplies no information about where the particles are, so nothing changes. The same gas, at the same density, now carries 2<i>N</i>&thinsp;<i>k</i><sub>B</sub>&thinsp;ln 2 of label uncertainty.'],
+    ['Counted the particles in each box.', 'Learning only the numbers in each box removes the small uncertainty about the counts, so the arrangement entropy drops below its value at stage 2. The label uncertainty remains.'],
+    ['Read every label.', 'Now we know which particle is in which box, as at the start. The full entropy returns to its initial value: the decrease comes from information acquired, not from inserting a wall.']
+  ],
+  spec: [
+    ['Start: blue in box A, red in box B.', 'Colors are now physical species, so the arrangement records where each color is. Only identities within each color go unrecorded.'],
+    ['Hole open: the two species mix.', 'Once the gas has had time to spread, the full entropy gains 2<i>N</i>&thinsp;<i>k</i><sub>B</sub>&thinsp;ln 2, exactly as for the same gas, but now all of it is arrangement entropy: genuine mixing of two species.'],
+    ['Hole closed, nobody looked.', 'Each box holds an unknown mixture of blue and red. Nothing has been learned, so nothing changes.'],
+    ['Counted each color in each box.', 'The numbers of blue and red particles in each box are now known. The mixing entropy remains in the arrangement.'],
+    ['Read every label.', 'Knowing which particle is where returns the full entropy to its initial value.']
+  ]
+};
+const STAGES_KO = {
+  same: [
+    ['시작: 각 상자에 어떤 라벨이 있는지 압니다.', '각 상자에는 부피 <i>V</i> 안에 <i>N</i>개의 입자가 있고, 어느 상자에 어떤 <i>N</i>개의 라벨이 있는지 압니다. 이것이 기준점입니다.'],
+    ['구멍 열림: 모든 입자가 2<i>V</i> 어디에나 있을 수 있습니다.', '기체가 충분히 퍼지고 나면, 평형 기술에서는 모든 입자가 합쳐진 부피 어디에나 있을 수 있습니다. 전체 엔트로피가 2<i>N</i>&thinsp;<i>k</i><sub>B</sub>&thinsp;ln 2만큼 늘어나는데, 거의 전부가 라벨링 엔트로피입니다. 어떤 라벨이 어느 쪽에 있는지 더 이상 모르기 때문입니다. 배치 엔트로피는 거의 변하지 않습니다.'],
+    ['구멍을 닫고, 아무도 들여다보지 않았습니다.', '구멍을 닫아도 입자의 위치에 대한 정보는 하나도 생기지 않으므로 아무것도 변하지 않습니다. 같은 밀도의 같은 기체가 이제 2<i>N</i>&thinsp;<i>k</i><sub>B</sub>&thinsp;ln 2만큼의 라벨 불확실성을 지닙니다.'],
+    ['각 상자의 입자 수를 셌습니다.', '각 상자의 입자 수만 알게 되어도 개수에 대한 작은 불확실성이 사라지므로, 배치 엔트로피는 2단계 값보다 조금 낮아집니다. 라벨 불확실성은 그대로 남습니다.'],
+    ['모든 라벨을 읽었습니다.', '이제 처음처럼 어느 입자가 어느 상자에 있는지 압니다. 전체 엔트로피가 처음 값으로 돌아갑니다. 줄어든 이유는 벽을 넣은 것이 아니라 정보를 얻었기 때문입니다.']
+  ],
+  spec: [
+    ['시작: 파랑은 상자 A, 빨강은 상자 B에 있습니다.', '이제 색은 물리적으로 다른 종이므로, 배치가 각 색의 위치를 기록합니다. 같은 색 안에서의 정체만 기록하지 않습니다.'],
+    ['구멍 열림: 두 종이 섞입니다.', '기체가 충분히 퍼지고 나면, 전체 엔트로피는 같은 기체일 때와 똑같이 2<i>N</i>&thinsp;<i>k</i><sub>B</sub>&thinsp;ln 2만큼 늘어납니다. 하지만 이번에는 전부가 배치 엔트로피로, 두 종이 진짜로 섞인 것입니다.'],
+    ['구멍을 닫고, 아무도 들여다보지 않았습니다.', '각 상자에는 파랑과 빨강이 알 수 없는 비율로 섞여 있습니다. 새로 알게 된 것이 없으므로 아무것도 변하지 않습니다.'],
+    ['각 상자에서 색깔별로 셌습니다.', '각 상자에 있는 파랑과 빨강 입자 수를 이제 압니다. 혼합 엔트로피는 배치에 그대로 남습니다.'],
+    ['모든 라벨을 읽었습니다.', '어느 입자가 어디에 있는지 알게 되면 전체 엔트로피가 처음 값으로 돌아갑니다.']
+  ]
+};
+function drawBars(E){
+  const svg = $('bars'); while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const M = Math.max(1e-9, 2*MX.N*LN2), x0 = 150, x1 = 440, zero = x0 + 0.12*(x1-x0);
+  const X = v => zero + v/M*(x1 - zero);
+  el('line',{x1:zero,x2:zero,y1:8,y2:168,style:'stroke:var(--muted);stroke-width:1'},svg);
+  el('line',{x1:X(M),x2:X(M),y1:8,y2:168,style:'stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3'},svg);
+  el('text',{x:X(M),y:184,'text-anchor':'end','font-size':11,style:'fill:var(--muted)'},svg,'2N ln 2 = '+M.toFixed(1));
+  el('text',{x:zero,y:184,'text-anchor':'middle','font-size':11,style:'fill:var(--muted)'},svg,'0');
+  [[T.full, E.full, 'var(--full)'],[T.label, E.label, 'var(--label)'],[T.arr, E.arr, 'var(--arr)']].forEach(([name, v, col], i)=>{
+    const y = 22 + i*50;
+    el('text',{x:0,y:y+15,'font-size':13,'font-weight':600,style:'fill:var(--ink)'},svg,'ΔS '+name);
+    const a = Math.min(X(0), X(v)), b = Math.max(X(0), X(v));
+    el('rect',{x:a,y:y,width:Math.max(1.5,b-a),height:22,rx:3,style:`fill:${col}`},svg);
+    const txt = (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2);
+    const right = X(v) + 6 < x1 - 40;
+    el('text',{x: v >= 0 ? (right ? X(v)+6 : X(v)-6) : Math.min(X(0)+6, x1), y:y+16,'text-anchor': v >= 0 && !right ? 'end' : 'start','font-size':12.5,'font-weight':600,style: v >= 0 && !right ? 'fill:var(--panel)' : 'fill:var(--ink)'},svg,txt);
+  });
+}
+function mixUI(){
+  const st = MX.stage;
+  $('bOpen').disabled = st === 1; $('bClose').disabled = st !== 1; $('bCount').disabled = st !== 2; $('bCheck').disabled = !(st === 2 || st === 3);
+  [['bOpen', st===0||st>=2],['bClose', st===1],['bCount', st===2],['bCheck', st===3]].forEach(([id, p])=>$(id).classList.toggle('primary', p));
+  [...$('steps').children].forEach((s,i)=>s.classList.toggle('on', i === st));
+  const T2 = (KO ? STAGES_KO : STAGES)[MX.mode][st];
+  $('stageText').innerHTML = `<b>${T2[0]}</b>${T2[1]}`;
+  drawBars(entropies());
+}
+function mixCountsUI(){
+  const C = mixCounts();
+  $('cntA').textContent = `${T.boxA}: ${C.a} (${T.blue} ${C.ab}, ${T.red} ${C.ar})`;
+  $('cntB').textContent = `${T.boxB}: ${C.b} (${T.blue} ${MX.N - C.ab}, ${T.red} ${MX.N - C.ar})`;
+}
+$('bOpen').addEventListener('click', ()=>{ MX.stage = 1; MX.counted = null; mixUI(); });
+$('bClose').addEventListener('click', ()=>{ MX.stage = 2; mixUI(); });
+$('bCount').addEventListener('click', ()=>{ MX.stage = 3; MX.counted = mixCounts(); mixUI(); });
+$('bCheck').addEventListener('click', ()=>{ MX.stage = 4; MX.counted = mixCounts(); mixUI(); });
+$('bReset').addEventListener('click', mixReset);
+$('nMix').addEventListener('input', e=>{ MX.N = +e.target.value; $('nMixOut').textContent = MX.N; mixReset(); drawN(); });
+$('bFast').addEventListener('click', ()=>{ mix.fast = !mix.fast; $('bFast').setAttribute('aria-pressed', mix.fast); $('bFast').classList.toggle('primary', mix.fast); });
+$('bPauseMix').addEventListener('click', ()=>{ mix.running = !mix.running; $('bPauseMix').textContent = mix.running ? T.pause : T.play; });
+const setMode = m => { MX.mode = m; $('mSame').setAttribute('aria-pressed', m==='same'); $('mSpec').setAttribute('aria-pressed', m==='spec'); mixUI(); };
+$('mSame').addEventListener('click', ()=>setMode('same')); $('mSpec').addEventListener('click', ()=>setMode('spec'));
+
+/* ---------- N dependence ---------- */
+function drawN(){
+  const pts = [], pa = [];
+  for (let e = 0; e <= 6.0001; e += 0.02){ const N = Math.max(1, Math.round(Math.pow(10, e))); const f = lnC(2*N, N)/(2*N*LN2); pts.push([N, f]); pa.push([N, 1-f]); }
+  const N = MX.N, f = lnC(2*N, N)/(2*N*LN2);
+  plot($('plotN'), {xmin:1, xmax:1e6, xlog:true, ymin:0, ymax:1, xlabel:T.xN, ylabel:T.yN,
+    series:[{pts, color:'var(--label)', width:2.6},{pts:pa, color:'var(--arr)', width:2.6}],
+    points:[{x:N, y:f, color:'var(--hl)', r:6},{x:N, y:1-f, color:'var(--hl)', r:6}]});
+}
+
+/* ---------- particle exchange ---------- */
+const EX = { N:80, f:0.30, hist:[], samples:0, frame:0 };
+const ex = new Gas($('exCanvas'), { partition:()=>2*EX.f });
+function exReset(){ ex.init([{n:EX.N, xmin:0, xmax:2, g:2}]); EX.hist = Array(EX.N+1).fill(0); EX.samples = 0; EX.sum = 0; exPlots(); }
+function exN1(){ let a = 0; for (let i=0;i<ex.x.length;i++) if (ex.x[i] < 2*EX.f) a++; return a; }
+function exPlots(){
+  const N = EX.N, f = EX.f, lr = Math.log(f/(1-f));
+  const P = []; for (let k=0;k<=N;k++) P.push(Math.exp(lnC(N,k) + k*Math.log(f) + (N-k)*Math.log(1-f)));
+  const pmax = Math.max(...P), hmax = EX.samples ? Math.max(...EX.hist)/EX.samples : 0;
+  const lo = Math.max(0, Math.floor(N*f - 4.5*Math.sqrt(N*f*(1-f)) - 2)), hi = Math.min(N, Math.ceil(N*f + 4.5*Math.sqrt(N*f*(1-f)) + 2));
+  plot($('plotP'), {xmin:lo-0.5, xmax:hi+0.5, ymin:0, ymax:Math.max(pmax, hmax)*1.15, xlabel:T.xN1, ylabel:T.yP,
+    bars: EX.samples ? EX.hist.map((c,k)=>({x:k, y:c/EX.samples, w:0.9, color:'var(--blue)', op:0.55})).filter(b=>b.x>=lo&&b.x<=hi) : [],
+    series:[{pts:P.map((p,k)=>[k,p]).filter(p=>p[0]>=lo&&p[0]<=hi), color:'var(--ink)', width:2}]});
+  const Sarr = [], Ssp = [];
+  for (let k=0;k<=N;k++){ Sarr.push(k*lr - lnf(k) - lnf(N-k)); Ssp.push(k*lr); }
+  const ma = Math.max(...Sarr), ms = Math.max(...Ssp);
+  const A = Sarr.map((v,k)=>[k, v-ma]), B = Ssp.map((v,k)=>[k, v-ms]);
+  const ymin = Math.min(A[0][1], A[N][1], B[0][1], B[N][1]);
+  const kmax = Sarr.indexOf(ma);
+  plot($('plotS'), {xmin:0, xmax:N, ymin:Math.floor(ymin*1.05), ymax:0, xlabel:T.xN1, ylabel:T.yS,
+    series:[{pts:B, color:'var(--trad)', width:2.4},{pts:A, color:'var(--arr)', width:2.6}],
+    vlines:[{x:kmax, color:'var(--arr)'}]});
+  $('exMax').textContent = `${kmax}  (N V₁/V = ${(N*f).toFixed(1)})`;
+  $('exSpec').textContent = f > 0.5 ? T.all1(N) : (f < 0.5 ? T.all2 : T.flat);
+  $('exAvg').textContent = EX.samples ? (EX.sum/EX.samples).toFixed(2) : '—';
+  $('exSamples').textContent = EX.samples;
+}
+$('fEx').addEventListener('input', e=>{ EX.f = +e.target.value; $('fExOut').textContent = EX.f.toFixed(2); EX.hist = Array(EX.N+1).fill(0); EX.samples = 0; EX.sum = 0; exPlots(); });
+$('nEx').addEventListener('input', e=>{ EX.N = +e.target.value; $('nExOut').textContent = EX.N; exReset(); });
+$('bClearEx').addEventListener('click', ()=>{ EX.hist = Array(EX.N+1).fill(0); EX.samples = 0; EX.sum = 0; exPlots(); });
+$('bPauseEx').addEventListener('click', ()=>{ ex.running = !ex.running; $('bPauseEx').textContent = ex.running ? T.pause : T.play; });
+
+/* ---------- milk ---------- */
+function milk(){
+  const f = +$('fMilk').value, xeq = 1 - f, r = Math.log(f/(1-f));
+  const xs = $('xMilk'); xs.max = xeq.toFixed(3); if (+xs.value > xeq) xs.value = xeq;
+  const x = +xs.value;
+  $('fMilkOut').textContent = f.toFixed(2); $('xMilkOut').textContent = x.toFixed(3);
+  const H = x => (x <= 0 ? 0 : -x*Math.log(x)) - (x >= 1 ? 0 : (1-x)*Math.log(1-x));
+  const xmax = Math.min(1, 2*xeq), pts = Array.from({length:301}, (_,i)=>xmax*i/300);
+  const trad = pts.map(x=>[x, -x*r]), arr = pts.map(x=>[x, H(x) - x*r]);
+  const lo = Math.min(...trad.map(p=>p[1]), ...arr.map(p=>p[1])), hi = Math.max(...arr.map(p=>p[1]));
+  plot($('plotMilk'), {xmin:0, xmax, ymin:lo*1.1, ymax:hi*1.25 + 0.02, xlabel:T.xMilk, ylabel:T.yMilk,
+    series:[{pts:trad, color:'var(--trad)', width:2.4},{pts:arr, color:'var(--arr)', width:2.6}],
+    vlines:[{x:xeq, color:'var(--muted)'}],
+    points:[{x, y:-x*r, color:'var(--trad)', r:6},{x, y:H(x)-x*r, color:'var(--arr)', r:6}]});
+  $('milkTrad').textContent = (-x*r).toFixed(4); $('milkArr').textContent = (H(x)-x*r).toFixed(4); $('milkEq').textContent = 'x = ' + xeq.toFixed(2);
+}
+$('fMilk').addEventListener('input', milk); $('xMilk').addEventListener('input', milk);
+
+/* ---------- animation loop ---------- */
+const vis = new Map();
+if ('IntersectionObserver' in window){
+  const io = new IntersectionObserver(es => es.forEach(e => vis.set(e.target, e.isIntersecting)));
+  [$('mixCanvas'), $('exCanvas')].forEach(c => io.observe(c));
+}
+const seen = c => vis.has(c) ? vis.get(c) : true;
+let last = performance.now(), redrawBars = 0;
+function frame(t){
+  const dt = Math.min(0.05, (t - last)/1000); last = t;
+  if (seen(mix.c)){
+    if (mix.running){ const k = mix.fast ? 6 : 1; for (let i=0;i<k;i++) mix.step(dt); }
+    mix.draw(); mixCountsUI();
+  }
+  if (seen(ex.c)){
+    if (ex.running){ ex.step(dt*1.5);
+      if (++EX.frame % 8 === 0){ const n1 = exN1(); EX.hist[n1]++; EX.samples++; EX.sum += n1; if (EX.frame % 32 === 0) exPlots(); } }
+    ex.draw(); $('exN1').textContent = `${T.reg1}: N₁ = ${exN1()}`; $('exN2').textContent = `${T.reg2}: N₂ = ${EX.N - exN1()}`;
+  }
+  requestAnimationFrame(frame);
+}
+drawMinis(); $('nMixOut').textContent = MX.N; $('fExOut').textContent = EX.f.toFixed(2); $('nExOut').textContent = EX.N;
+mixReset(); drawN(); exReset(); milk();
+requestAnimationFrame(frame);
+})();
+</script>
+<script>
+(() => {
+  // light/dark switch; the choice is remembered across all of the course demos
+  const btn = document.getElementById("themeBtn"), root = document.documentElement, mq = matchMedia("(prefers-color-scheme: dark)");
+  const SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>';
+  const MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>';
+  const current = () => root.dataset.theme || (mq.matches ? "dark" : "light");
+  const sync = () => { const dark = current() === "dark", label = dark ? "밝은 화면으로 전환" : "어두운 화면으로 전환";
+    btn.innerHTML = dark ? SUN : MOON; btn.setAttribute("aria-label", label); btn.title = label; };
+  btn.addEventListener("click", () => { const next = current() === "dark" ? "light" : "dark"; root.dataset.theme = next;
+    try { localStorage.setItem("netsci-theme", next); } catch (e) {} sync(); });
+  mq.addEventListener("change", sync);
+  sync();
+})();
+</script>
+</body>
+</html>
