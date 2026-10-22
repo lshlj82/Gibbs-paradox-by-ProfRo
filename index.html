@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Labels, arrangements, and the Gibbs paradox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<script>try { const t = localStorage.getItem("netsci-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code','svg'] }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+<style>
+:root{
+  --bg:#F3F5F7; --panel:#FFFFFF; --ink:#1C2331; --muted:#5A6476; --rule:#D3D8DF; --faint:#E7EBF0;
+  --blue:#2766A8; --red:#C0392B; --full:#1C2331; --label:#8A5DB0; --arr:#2E7D4F; --trad:#B4581B; --hl:#F5E15A;
+  --serif:"Source Serif 4","Source Serif Pro",Georgia,serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121722; --panel:#1A2030; --ink:#E5E9F0; --muted:#9AA4B5; --rule:#2D3546; --faint:#232B3C;
+    --blue:#69A6E6; --red:#EF6F5E; --full:#E5E9F0; --label:#B48DDA; --arr:#5CC38A; --trad:#EE9A5A; --hl:#6B5F1A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121722; --panel:#1A2030; --ink:#E5E9F0; --muted:#9AA4B5; --rule:#2D3546; --faint:#232B3C;
+  --blue:#69A6E6; --red:#EF6F5E; --full:#E5E9F0; --label:#B48DDA; --arr:#5CC38A; --trad:#EE9A5A; --hl:#6B5F1A;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:1.075rem;line-height:1.62;-webkit-text-size-adjust:100%}
+main{max-width:1140px;margin:0 auto;padding:0 1.25rem 4rem}
+.prose{max-width:44rem}
+h1,h2,h3{font-family:var(--serif);line-height:1.2;font-weight:700}
+h1{font-size:clamp(1.9rem,4.4vw,3rem);margin:1.6rem 0 .4rem;letter-spacing:-.01em;max-width:22ch}
+h2{font-size:1.6rem;margin:3.4rem 0 .6rem}
+h3{font-size:1.15rem;margin:1.6rem 0 .3rem}
+p{margin:.7rem 0}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.lede{font-size:1.18rem;color:var(--muted);max-width:42rem;margin:.2rem 0 1.4rem}
+.course{font-family:var(--sans);font-size:.92rem;color:var(--muted);margin:1.2rem 52px 0 0}
+.mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}
+button.theme-btn{position:fixed;z-index:20;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 12px);
+  width:40px;height:40px;padding:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;
+  background:var(--panel);color:var(--ink);border:1px solid var(--rule);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+button.theme-btn:hover{border-color:var(--ink)}
+button.theme-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:1.1rem 1.25rem;margin:1.2rem 0}
+.ui{font-family:var(--sans);font-size:.92rem}
+.ctl{margin:.2rem 0 .9rem}
+.ctl label{display:flex;justify-content:space-between;gap:1rem;font-weight:500}
+.ctl output{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:400}
+input[type=range]{width:100%;accent-color:var(--ink);margin:.35rem 0 0}
+button.pill{font-family:var(--sans);font-size:.86rem;border:1px solid var(--rule);background:var(--bg);color:var(--ink);border-radius:999px;padding:.36rem .9rem;cursor:pointer}
+button.pill:hover:not(:disabled){border-color:var(--ink)}
+button.pill:disabled{opacity:.4;cursor:default}
+button.pill.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.btnrow{display:flex;flex-wrap:wrap;gap:.45rem;margin:.6rem 0}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden;font-family:var(--sans);font-size:.86rem}
+.seg button{border:0;background:transparent;color:var(--ink);padding:.34rem .85rem;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.lab{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:1.4rem}
+@media (max-width:900px){.lab{grid-template-columns:1fr}}
+canvas.gas{width:100%;height:auto;display:block;border-radius:10px;background:var(--bg);border:1px solid var(--rule);touch-action:pan-y}
+.counts{font-family:var(--sans);font-size:.88rem;color:var(--muted);display:flex;justify-content:space-between;gap:1rem;margin:.4rem .1rem 0;font-variant-numeric:tabular-nums}
+.stage{font-family:var(--sans);font-size:.9rem;border-left:4px solid var(--hl);background:var(--bg);padding:.5rem .8rem;border-radius:0 8px 8px 0;margin:.6rem 0;min-height:4.6em}
+.stage b{display:block;margin-bottom:.15rem}
+.steps{display:flex;gap:.3rem;margin:.2rem 0 .5rem;font-family:var(--sans);font-size:.78rem;color:var(--muted);flex-wrap:wrap}
+.steps span{padding:.12rem .5rem;border-radius:999px;border:1px solid var(--rule)}
+.steps span.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.cols2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.2rem}
+@media (max-width:860px){.cols2{grid-template-columns:1fr}}
+.legend{display:flex;flex-wrap:wrap;gap:.3rem 1rem;font-family:var(--sans);font-size:.84rem;color:var(--muted);margin:.3rem 0}
+.legend .sw{display:inline-block;width:.8rem;height:.8rem;border-radius:2px;vertical-align:-1px;margin-right:.3rem}
+.legend .ln{display:inline-block;width:1.3rem;height:0;border-top:2.5px solid;vertical-align:3px;margin-right:.3rem}
+.legend .ln.d{border-top-style:dashed}
+.kv{font-family:var(--sans);font-size:.9rem;font-variant-numeric:tabular-nums;margin:.5rem 0;display:grid;grid-template-columns:auto auto;gap:.15rem 1rem;justify-content:start}
+.kv dt{color:var(--muted)} .kv dd{margin:0}
+.note{font-family:var(--sans);font-size:.86rem;color:var(--muted)}
+.tablewrap{overflow-x:auto;margin:1rem 0;border:1px solid var(--rule);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-family:var(--sans);font-size:.9rem;font-variant-numeric:tabular-nums}
+th,td{padding:.5rem .75rem;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-weight:600;color:var(--muted);font-size:.84rem}
+tbody tr:last-child td{border-bottom:0}
+svg text{font-family:var(--sans)}
+footer{border-top:1px solid var(--rule);margin-top:4rem;padding-top:1.4rem;font-family:var(--sans);font-size:.9rem;color:var(--muted)}
+footer p,footer ol{max-width:48rem}
+footer ol{padding-left:1.3rem}
+footer li{margin:.35rem 0}
+</style>
+</head>
+<body>
+<button id="themeBtn" class="theme-btn" type="button" aria-label="Switch to dark mode"></button>
+<main>
+<p class="course"><a href="https://lshlj82.github.io/statphys1-GNU/" style="color:inherit">Statistical Physics 1</a>, supplementary material based on lecture notes by Prof. Sunghan Ro (Harvard University)</p>
+<h1>Labels, arrangements, and the Gibbs paradox</h1>
+<p class="lede">Mix two samples of the same classical gas and the textbook entropy goes up by \(2Nk_B\ln 2\), even though nothing macroscopic has changed. The usual cure divides by \(N!\) and appeals to quantum indistinguishability. Here is a classical cure instead: keep every labeled microstate, and ask which part of the entropy records particle labels and which part records the arrangement we actually observe.</p>
+
+<section class="panel ui" aria-label="Mixing experiment">
+  <div class="lab">
+    <div>
+      <canvas id="mixCanvas" class="gas" width="800" height="400" aria-label="Two boxes of gas particles separated by a wall with a hole"></canvas>
+      <div class="counts"><span id="cntA"></span><span id="cntB"></span></div>
+      <div class="btnrow">
+        <button class="pill primary" id="bOpen">Open the hole</button>
+        <button class="pill" id="bClose">Close the hole</button>
+        <button class="pill" id="bCount">Count each box</button>
+        <button class="pill" id="bCheck">Read every label</button>
+        <button class="pill" id="bReset">Reset</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center">
+        <div class="ctl" style="flex:1 1 14rem;margin:0"><label for="nMix"><span>Particles per box \(N\)</span> <output id="nMixOut"></output></label><input id="nMix" type="range" min="2" max="150" step="1" value="40"></div>
+        <button class="pill" id="bFast" aria-pressed="false">Fast-forward</button>
+        <button class="pill" id="bPauseMix">Pause</button>
+      </div>
+    </div>
+    <div>
+      <div class="seg" role="group" aria-label="What the colors mean" style="margin-bottom:.5rem"><button id="mSame" aria-pressed="true">Same gas: colors are only labels</button><button id="mSpec" aria-pressed="false">Two species</button></div>
+      <div class="steps" id="steps"><span>1 Start</span><span>2 Hole open</span><span>3 Closed</span><span>4 Counted</span><span>5 Labels read</span></div>
+      <div class="stage" id="stageText" aria-live="polite"></div>
+      <svg id="bars" viewBox="0 0 460 190" role="img" aria-label="Entropy changes relative to the start"></svg>
+      <p class="note" style="margin:.2rem 0 0">Changes from stage 1, in units of \(k_B\). The full entropy always equals labeling plus arrangement.</p>
+    </div>
+  </div>
+</section>
+
+<div class="prose">
+<h2>The paradox</h2>
+<p>Put \(N\) particles in each of two boxes of volume \(V\). With a fixed reference volume \(v_0\) and \(\tilde V = V/v_0\), the position entropy of an ideal gas whose particles are known to be in their boxes is \(S_{\rm i} = 2Nk_B\ln\tilde V\). Open a hole: every particle may now be anywhere in \(2V\), so</p>
+\[ S_{\rm m} = 2Nk_B\ln(2\tilde V) = S_{\rm i} + 2Nk_B\ln 2. \]
+<p>Closing the hole tells us nothing about where the particles are, so the entropy stays at \(S_{\rm m}\). For red and blue gases this is the familiar mixing entropy. But if the two samples are the same gas, closing the hole seems to restore the original macroscopic state. Has the entropy really gone up? Could we lower it just by inserting a partition into a uniform gas?</p>
+<p>The quantum-mechanical prescription divides the count by \(N!\), because exchanging identical particles does not create a new quantum state. That removes the leading increase for the same gas. But it cannot be the whole story. A molecular-dynamics simulation keeps an index on every classical particle, and colloidal particles (fat globules in milk, pigment grains in paint) really are distinguishable, yet statistical mechanics works for both.</p>
+
+<h2>One particle is enough</h2>
+<p>The "mixing" entropy does not need two gases. Put one particle in box A of two equal boxes. Its position entropy is \(k_B\ln\tilde V\). Open the hole: the particle may be anywhere in \(2V\), so the entropy is \(k_B\ln(2\tilde V)\). Close the hole without looking. Now the particle is confined to one box of volume \(V\), but we don't know which. With \(b \in \{A, B\}\) the occupied box and \(\mathbf r\) the position inside it, \(\rho(b,\mathbf r) = \tfrac12\cdot\tfrac1V\) and</p>
+\[ S_{\rm f} = \underbrace{k_B\ln 2}_{\text{which box?}} + \underbrace{k_B\ln\tilde V}_{\text{where inside it?}} = S_{\rm m}. \]
+<p>The extra \(k_B\ln 2\) is uncertainty about the box, not an effect of mixing. If we look and find the particle, the entropy returns to \(k_B\ln\tilde V\): the reduction comes from the information acquired, not from the mechanical act of inserting a wall. With \(2N\) particles each losing one bit of box information, the full entropy rises by exactly \(2Nk_B\ln 2\).</p>
+
+<h2>Labeling entropy and arrangement entropy</h2>
+<p>The key tool is the chain rule for entropy. For random variables \(X\) and \(Y\), \(p(x,y) = p(x|y)\,p(y)\) gives</p>
+\[ S(X,Y) = S(X|Y) + S(Y), \]
+<p>where \(S(X|Y)\) is the uncertainty left in \(X\) once \(Y\) is known. Now take \(N\) distinguishable particles in regions of volume \(V_1\) and \(V_2\), and suppose we know only the numbers \(N_1\) and \(N_2 = N - N_1\), not which particles they are. There are \(\binom{N}{N_1}\) possible sets of labels \(L\) in the first region, each allowing the same position volume \(V_1^{N_1}V_2^{N_2}\). With nothing to favor any of them, MaxEnt gives each probability \(\binom{N}{N_1}^{-1}\), and the full position entropy is</p>
+\[ S_{\rm full} = k_B\ln\binom{N}{N_1} + N_1k_B\ln\tilde V_1 + N_2k_B\ln\tilde V_2 = \underbrace{k_B\ln N!}_{S_{\rm label}} + \underbrace{k_B\ln\!\left[\frac{\tilde V_1^{N_1}}{N_1!}\,\frac{\tilde V_2^{N_2}}{N_2!}\right]}_{S_{\rm arr}}. \]
+<p>No microstate has been discarded: each labeled configuration belongs to exactly one assignment \(L\). The <strong>labeling entropy</strong> \(k_B\ln N!\) counts the ways to put identities on an unlabeled arrangement. Because the total \(N\) is fixed, it does not change as particles move between regions. The <strong>arrangement entropy</strong> is what remains, and it already carries the famous \(1/N!\), not as an instruction to identify classical microstates, but as the price of not recording labels.</p>
+<p>Back in the mixing experiment, the start specifies which \(N\) labels sit in each box, which permits \((N!)^2\) label assignments. After mixing, all \((2N)!\) are possible:</p>
+\[ \Delta S_{\rm label} = k_B\ln\frac{(2N)!}{(N!)^2} = 2Nk_B\ln 2 - \tfrac12 k_B\ln(\pi N) + \cdots, \qquad \Delta S_{\rm arr} = 2Nk_B\ln 2 - \Delta S_{\rm label} \approx \tfrac12 k_B\ln(\pi N). \]
+<p>The leading increase is lost label information. The arrangement entropy changes only by a term of order \(\ln N\), which comes from comparing exactly known initial counts with fluctuating final counts. Press <b>Read every label</b> in the demo above to see the full entropy return to zero once the lost information is recovered.</p>
+</div>
+
+<div class="panel ui">
+  <svg id="plotN" viewBox="0 0 1000 300" role="img" aria-label="Fractions of the mixing entropy carried by labels and by the arrangement as a function of N"></svg>
+  <div class="legend"><span><span class="ln" style="border-color:var(--label)"></span>\(\Delta S_{\rm label}/(2Nk_B\ln 2)\)</span><span><span class="ln" style="border-color:var(--arr)"></span>\(\Delta S_{\rm arr}/(2Nk_B\ln 2)\)</span><span><span class="sw" style="background:var(--hl);border-radius:50%"></span>The \(N\) in the demo</span></div>
+  <p class="note" style="margin:0">As \(N\) grows, essentially all of the mixing entropy is labeling entropy. For a liter of milk, with about \(10^{12}\) fat globules, \(\Delta S_{\rm arr}\) would be about \(14\,k_B\) out of \(2Nk_B\ln 2 \approx 1.4\times10^{12}\,k_B\).</p>
+</div>
+
+<div class="prose">
+<h3>When colors are physical</h3>
+<p>Switch the demo to <b>Two species</b>. Now red and blue are distinct, and the arrangement records where each color is. Only identities within each color go unrecorded, so \(S_{\rm label} = k_B\ln(N_{\rm r}!\,N_{\rm b}!)\) stays constant, and the whole \(2Nk_B\ln 2\) appears in the arrangement entropy: genuine mixing. Notice that the full entropy is the same in both modes. Imagine the red tint fading continuously to blue: the full entropy never jumps. What jumps is our choice of what the arrangement records, from two colors to one. The "discontinuity" of the Gibbs paradox lives in that change of description, not in the physics.</p>
+
+<h2>Exchanging particles: why the gas spreads evenly</h2>
+<p>If we let \(N\) labeled particles move between regions \(V_1\) and \(V_2\) and maximize only the entropy that assumes we know which particles are where,</p>
+\[ S_{\rm specified} = N_1k_B\ln\tilde V_1 + N_2k_B\ln\tilde V_2, \qquad \frac{dS_{\rm specified}}{dN_1} = k_B\ln\frac{V_1}{V_2}, \]
+<p>the derivative never vanishes when \(V_1 \ne V_2\): all particles would pile into the larger region. That answers a more detailed question than the one asked. Counting the unknown label assignments adds \(k_B\ln\binom{N}{N_1}\), and the probability of a split becomes binomial,</p>
+\[ P(N_1) = \binom{N}{N_1}\left(\frac{V_1}{V_1+V_2}\right)^{N_1}\left(\frac{V_2}{V_1+V_2}\right)^{N_2}, \qquad S_{\rm arr}(N_1) = k_B\ln P(N_1) + k_B\ln\frac{\tilde V^N}{N!}, \]
+<p>which peaks at \(N_1/V_1 = N_2/V_2\). The second relation is Swendsen's reading of Boltzmann: entropy as the logarithm of the probability of a macrostate of the composite system, up to a constant. The simulation below keeps an index on every particle and draws an imaginary line through the box. The particles do not collect in the larger part.</p>
+</div>
+
+<section class="panel ui" aria-label="Particle exchange">
+  <div class="cols2">
+    <div>
+      <canvas id="exCanvas" class="gas" width="800" height="400" aria-label="Labeled gas particles with an imaginary partition"></canvas>
+      <div class="counts"><span id="exN1"></span><span id="exN2"></span></div>
+      <div class="ctl" style="margin-top:.6rem"><label for="fEx"><span>Volume fraction of region 1, \(V_1/V\)</span> <output id="fExOut"></output></label><input id="fEx" type="range" min="0.15" max="0.85" step="0.01" value="0.30"></div>
+      <div class="ctl"><label for="nEx"><span>Total particles \(N\)</span> <output id="nExOut"></output></label><input id="nEx" type="range" min="10" max="300" step="2" value="80"></div>
+      <div class="btnrow"><button class="pill" id="bPauseEx">Pause</button><button class="pill" id="bClearEx">Clear histogram</button></div>
+    </div>
+    <div>
+      <svg id="plotP" viewBox="0 0 520 280" role="img" aria-label="Histogram of the number of particles in region 1 compared with the binomial distribution"></svg>
+      <div class="legend"><span><span class="sw" style="background:var(--blue);opacity:.55"></span>Simulation (<span id="exSamples">0</span> samples)</span><span><span class="ln" style="border-color:var(--ink)"></span>Binomial \(P(N_1)\)</span></div>
+      <svg id="plotS" viewBox="0 0 520 280" role="img" aria-label="Entropy versus N1 for the specified and arrangement entropies"></svg>
+      <div class="legend"><span><span class="ln" style="border-color:var(--trad)"></span>\(S_{\rm specified}\) (labels assumed known)</span><span><span class="ln" style="border-color:var(--arr)"></span>\(S_{\rm arr}\) (labels unrecorded)</span></div>
+      <dl class="kv">
+        <dt>Most probable \(N_1\), from \(S_{\rm arr}\)</dt><dd id="exMax"></dd>
+        <dt>Maximum of \(S_{\rm specified}\)</dt><dd id="exSpec"></dd>
+        <dt>Simulation average of \(N_1\)</dt><dd id="exAvg"></dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<div class="prose">
+<h2>Colloids: where the traditional entropy fails</h2>
+<p>Swendsen pointed out that colloids make the problem concrete. Homogenized milk contains roughly \(10^{12}\) fat globules per liter. They are large enough to be classical and different enough from one another to be distinguishable, so a "traditional" entropy without \(1/N!\), \(S_{\rm trad} = Nk_B[\ln V + \tfrac32\ln(E/N) + X]\), seems natural. It makes wrong predictions.</p>
+<p><strong>Removing a wall in uniform milk.</strong> With equal densities on both sides, \(\Delta S_{\rm trad} = N_1k_B\ln(V/V_1) + N_2k_B\ln(V/V_2) > 0\), about \(7\times10^{11}\,k_B\) for equal halves. Reinserting the wall restores the same macrostate, so the traditional entropy would have to decrease. The arrangement entropy changes only by \(-k_B\ln P(N_1) \approx 14\,k_B\), the subleading cost of no longer knowing the exact counts.</p>
+<p><strong>Partially mixing whole milk with skim milk.</strong> Put whole milk in the larger volume \(V_1\) and skim milk in \(V_2\), open a hole briefly, and close it before mixing is complete. If \(N_2\) globules have crossed, the traditional entropy changes by \(-N_2k_B\ln(V_1/V_2) < 0\) for an obviously irreversible process. With \(x = N_2/N\), the arrangement entropy changes by</p>
+\[ \frac{\Delta S_{\rm arr}}{Nk_B} = -x\ln x - (1-x)\ln(1-x) - x\ln\frac{V_1}{V_2} > 0, \]
+<p>which grows until equilibrium, \(x = V_2/V\), as the second law requires.</p>
+</div>
+<div class="panel ui">
+  <div class="cols2">
+    <div>
+      <svg id="plotMilk" viewBox="0 0 520 320" role="img" aria-label="Entropy change per globule versus the fraction that has crossed into the smaller volume"></svg>
+      <div class="legend"><span><span class="ln" style="border-color:var(--trad)"></span>Traditional \(\Delta S_{\rm trad}/(Nk_B)\)</span><span><span class="ln" style="border-color:var(--arr)"></span>Arrangement \(\Delta S_{\rm arr}/(Nk_B)\)</span></div>
+    </div>
+    <div>
+      <div class="ctl"><label for="fMilk"><span>Volume fraction of the whole-milk side, \(V_1/V\)</span> <output id="fMilkOut"></output></label><input id="fMilk" type="range" min="0.55" max="0.95" step="0.01" value="0.70"></div>
+      <div class="ctl"><label for="xMilk"><span>Fraction of globules that crossed, \(x = N_2/N\)</span> <output id="xMilkOut"></output></label><input id="xMilk" type="range" min="0" max="1" step="0.001" value="0.15"></div>
+      <dl class="kv">
+        <dt>\(\Delta S_{\rm trad}/(Nk_B)\)</dt><dd id="milkTrad"></dd>
+        <dt>\(\Delta S_{\rm arr}/(Nk_B)\)</dt><dd id="milkArr"></dd>
+        <dt>Equilibrium at \(x = V_2/V\)</dt><dd id="milkEq"></dd>
+      </dl>
+      <p class="note">The slider stops at equilibrium. The traditional entropy decreases along the whole irreversible process; the arrangement entropy increases and peaks exactly at equilibrium.</p>
+    </div>
+  </div>
+</div>
+
+<div class="prose">
+<h2>Summary</h2>
+<p>When the mechanics and the constraints treat all labels symmetrically, the full information entropy splits as</p>
+\[ S_{\rm full} = S_{\rm arr} + k_B\ln N!. \]
+<p>The full entropy keeps every labeled classical microstate and is superextensive. The arrangement entropy is extensive to leading order, and for the ideal gas it is the Sackur–Tetrode equation,</p>
+\[ S_{\rm arr}(E,V,N) = Nk_B\left\{\ln\!\left[\frac{V}{N}\left(\frac{4\pi mE}{3Nh^2}\right)^{3/2}\right] + \frac52\right\} + O(k_B\ln N). \]
+<p>The two entropies are not rivals; they answer questions that retain different information. The arrangement entropy is the right one whenever the labels are irrelevant to the constraints and the observables, and the label information must be restored whenever particle identities matter. Information entropy is subjective in this limited sense, since it depends on what we know, but it is not arbitrary: once the retained information is specified, MaxEnt fixes the assignment.</p>
+</div>
+
+<footer>
+<p>This page was created by Claude Opus 5.5 (Anthropic), based on the lecture notes “Typicality and the Gibbs Paradox” (Lecture 7) by Prof. Sunghan Ro (Harvard University). The explanations, numerical results, and interactive figures were generated by the model and should be read alongside the sources below. It supplements demo 5, “Large Systems and Entropy,” in the <a href="https://lshlj82.github.io/statphys1-GNU/">Statistical Physics 1 interactive demos</a>. Source code: <a href="https://github.com/lshlj82/Gibbs-paradox-by-ProfRo">Gibbs-paradox-by-ProfRo</a> on GitHub.</p>
+<ol>
+  <li>S. Ro, lecture notes, Chapter 3, “Microscopic dynamics and the foundations of statistical mechanics,” Section 3.4, “Typicality and the Gibbs paradox.”</li>
+  <li>R. H. Swendsen, “Statistical mechanics of colloids and Boltzmann’s definition of the entropy,” <em>American Journal of Physics</em> <strong>74</strong>, 187–190 (2006).</li>
+  <li>R. H. Swendsen, “Statistical mechanics of classical systems of distinguishable particles,” <em>Journal of Statistical Physics</em> <strong>107</strong>, 1143–1165 (2002), as cited in Ref. 2.</li>
+  <li>L. Boltzmann, “Über die Beziehung zwischen dem zweiten Hauptsatze der mechanischen Wärmetheorie und der Wahrscheinlichkeitsrechnung respektive den Sätzen über das Wärmegleichgewicht,” <em>Wiener Berichte</em> <strong>76</strong>, 373–435 (1877), as cited in Ref. 2.</li>
+</ol>
+</footer>
+</main>
+
+<script>
+(function(){
+const NS = 'http://www.w3.org/2000/svg';
+const $ = id => document.getElementById(id);
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+function el(tag, attrs, parent, text){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+/* ---------- math ---------- */
+const LF = [0]; for (let i=1;i<=20000;i++) LF[i] = LF[i-1] + Math.log(i);
+const lnf = n => n <= 20000 ? LF[n] : n*Math.log(n) - n + 0.5*Math.log(2*Math.PI*n) + 1/(12*n) - 1/(360*n*n*n);
+const lnC = (n, k) => lnf(n) - lnf(k) - lnf(n-k);
+const LN2 = Math.log(2);
+
+/* ---------- plotting ---------- */
+function niceTicks(a, b, n){
+  const span = b - a; if (span <= 0) return [a];
+  const raw = span/n, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1,2,2.5,5,10].map(m=>m*mag).find(s=>s>=raw) || 10*mag;
+  const out = []; for (let t = Math.ceil(a/step)*step; t <= b + 1e-9*step; t += step) out.push(+t.toFixed(10));
+  return out;
+}
+function plot(svg, o){
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const vb = svg.viewBox.baseVal, W = vb.width, H = vb.height, m = {l:58, r:14, t:14, b:46};
+  const tx = o.xlog ? (x => Math.log10(x)) : (x => x);
+  const x0 = tx(o.xmin), x1 = tx(o.xmax);
+  const X = x => m.l + (tx(x) - x0)/(x1 - x0)*(W - m.l - m.r);
+  const Y = y => H - m.b - (y - o.ymin)/(o.ymax - o.ymin)*(H - m.t - m.b);
+  const g = el('g', {}, svg);
+  const xt = o.xlog ? (()=>{ const a=[]; for (let e=Math.ceil(x0); e<=x1+1e-9; e++) a.push(Math.pow(10,e)); return a; })() : (o.xticks || niceTicks(o.xmin, o.xmax, 6));
+  xt.forEach(t=>{
+    el('line',{x1:X(t),x2:X(t),y1:m.t,y2:H-m.b,style:'stroke:var(--faint);stroke-width:1'},g);
+    el('text',{x:X(t),y:H-m.b+16,'text-anchor':'middle','font-size':12,style:'fill:var(--muted)'},g, o.xlog ? (t<1e4 ? String(t) : '10'+String(Math.round(Math.log10(t))).replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d])) : String(t));
+  });
+  niceTicks(o.ymin, o.ymax, o.yticks || 5).forEach(t=>{
+    el('line',{x1:m.l,x2:W-m.r,y1:Y(t),y2:Y(t),style:'stroke:var(--faint);stroke-width:1'},g);
+    el('text',{x:m.l-7,y:Y(t)+4,'text-anchor':'end','font-size':12,style:'fill:var(--muted)'},g,String(t));
+  });
+  if (o.ymin < 0 && o.ymax > 0) el('line',{x1:m.l,x2:W-m.r,y1:Y(0),y2:Y(0),style:'stroke:var(--muted);stroke-width:1'},g);
+  else el('line',{x1:m.l,x2:W-m.r,y1:H-m.b,y2:H-m.b,style:'stroke:var(--muted);stroke-width:1'},g);
+  const lab = (t, str) => str.split(/(_\{[^}]*\})/).forEach(part=>{
+    if (part.startsWith('_{')) el('tspan',{'baseline-shift':'sub','font-size':10},t,part.slice(2,-1));
+    else if (part) el('tspan',{},t,part); });
+  lab(el('text',{x:(m.l+W-m.r)/2,y:H-8,'text-anchor':'middle','font-size':13,style:'fill:var(--ink)'},g), o.xlabel);
+  lab(el('text',{x:14,y:(m.t+H-m.b)/2,'text-anchor':'middle','font-size':13,transform:`rotate(-90 14 ${(m.t+H-m.b)/2})`,style:'fill:var(--ink)'},g), o.ylabel);
+  const clip = 'c'+Math.random().toString(36).slice(2);
+  const cp = el('clipPath',{id:clip}, el('defs',{},svg)); el('rect',{x:m.l,y:m.t-2,width:W-m.l-m.r,height:H-m.t-m.b+4},cp);
+  const gc = el('g',{'clip-path':`url(#${clip})`}, svg);
+  (o.bars||[]).forEach(b=>{ el('rect',{x:X(b.x-b.w/2),y:Y(b.y),width:Math.max(0.5, X(b.x+b.w/2)-X(b.x-b.w/2)),height:Math.max(0, Y(o.ymin)-Y(b.y)),style:`fill:${b.color};opacity:${b.op||1}`},gc); });
+  (o.series||[]).forEach(s=>{
+    const pts = s.pts.filter(p=>isFinite(p[1])); if (!pts.length) return;
+    el('path',{d:pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(2)+','+Y(p[1]).toFixed(2)).join(''),style:`fill:none;stroke:${s.color};stroke-width:${s.width||2.2};${s.dash?'stroke-dasharray:'+s.dash:''}`},gc);
+  });
+  (o.vlines||[]).forEach(v=>el('line',{x1:X(v.x),x2:X(v.x),y1:m.t,y2:H-m.b,style:`stroke:${v.color};stroke-width:1.5;stroke-dasharray:4 3`},gc));
+  (o.points||[]).forEach(p=>el('circle',{cx:X(p.x),cy:Y(p.y),r:p.r||4,style:`fill:${p.color};stroke:var(--panel);stroke-width:1.5`},gc));
+  return {X, Y, g:gc};
+}
+
+/* ---------- gas simulation (ideal gas, no particle collisions) ---------- */
+function Gas(canvas, cfg){
+  this.c = canvas; this.ctx = canvas.getContext('2d'); this.cfg = cfg; this.running = true; this.fast = false;
+  this.W = 2; this.H = 1; this.x=[]; this.y=[]; this.vx=[]; this.vy=[]; this.g=[];
+}
+Gas.prototype.init = function(groups){ // groups: array of {n, xmin, xmax, g}
+  this.x=[]; this.y=[]; this.vx=[]; this.vy=[]; this.g=[];
+  groups.forEach(G => { for (let i=0;i<G.n;i++){
+    this.x.push(G.xmin + 0.01 + Math.random()*(G.xmax - G.xmin - 0.02)); this.y.push(0.01 + Math.random()*0.98);
+    const u = Math.max(1e-9, Math.random()), s = 0.32*Math.sqrt(-2*Math.log(u)), th = 2*Math.PI*Math.random();
+    this.vx.push(s*Math.cos(th)); this.vy.push(s*Math.sin(th)); this.g.push(G.g);
+  }});
+};
+Gas.prototype.step = function(dt){
+  const c = this.cfg, mid = 1, wall = c.wall && c.wall(), hole = c.holeOpen && c.holeOpen(), h0 = 0.33, h1 = 0.67;
+  for (let i=0;i<this.x.length;i++){
+    let nx = this.x[i] + this.vx[i]*dt, ny = this.y[i] + this.vy[i]*dt;
+    if (nx < 0){ nx = -nx; this.vx[i] = -this.vx[i]; } else if (nx > this.W){ nx = 2*this.W - nx; this.vx[i] = -this.vx[i]; }
+    if (ny < 0){ ny = -ny; this.vy[i] = -this.vy[i]; } else if (ny > this.H){ ny = 2*this.H - ny; this.vy[i] = -this.vy[i]; }
+    if (wall && (this.x[i] - mid)*(nx - mid) < 0){
+      const yc = this.y[i] + (ny - this.y[i])*(mid - this.x[i])/(nx - this.x[i]);
+      if (!(hole && yc > h0 && yc < h1)){ nx = 2*mid - nx; this.vx[i] = -this.vx[i]; }
+    }
+    this.x[i] = nx; this.y[i] = ny;
+  }
+};
+Gas.prototype.size = function(){
+  const r = this.c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  const w = Math.max(200, Math.round(r.width*dpr)), h = Math.round(w/2);
+  if (this.c.width !== w || this.c.height !== h){ this.c.width = w; this.c.height = h; }
+};
+Gas.prototype.draw = function(){
+  this.size();
+  const ctx = this.ctx, w = this.c.width, h = this.c.height, s = w/this.W, dpr = window.devicePixelRatio || 1;
+  ctx.clearRect(0,0,w,h);
+  const c = this.cfg, ink = css('--ink'), muted = css('--muted');
+  if (c.wall && c.wall()){
+    ctx.fillStyle = ink; const ww = 4*dpr;
+    if (c.holeOpen && c.holeOpen()){ ctx.fillRect(s-ww/2, 0, ww, 0.33*h); ctx.fillRect(s-ww/2, 0.67*h, ww, 0.33*h); }
+    else ctx.fillRect(s-ww/2, 0, ww, h);
+  }
+  if (c.partition){ const xp = c.partition()*s; ctx.strokeStyle = muted; ctx.lineWidth = 1.5*dpr; ctx.setLineDash([6*dpr, 5*dpr]);
+    ctx.beginPath(); ctx.moveTo(xp, 0); ctx.lineTo(xp, h); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = muted; ctx.font = `${12*dpr}px ${css('--sans')}`; ctx.fillText('V₁', 8*dpr, 18*dpr); ctx.fillText('V₂', xp + 8*dpr, 18*dpr); }
+  const cols = [css('--blue'), css('--red'), css('--ink')], r = Math.max(2.4, Math.min(4.2, 900/Math.sqrt(this.x.length+50)/30))*dpr;
+  for (let i=0;i<this.x.length;i++){ ctx.fillStyle = cols[this.g[i]]; ctx.beginPath(); ctx.arc(this.x[i]*s, (1-this.y[i])*h, r, 0, 2*Math.PI); ctx.fill(); }
+};
+
+/* ---------- mixing experiment ---------- */
+const MX = { N:40, stage:0, mode:'same', counted:null };
+const mix = new Gas($('mixCanvas'), { wall:()=>true, holeOpen:()=>MX.stage === 1 });
+function mixReset(){ MX.stage = 0; MX.counted = null; mix.init([{n:MX.N, xmin:0, xmax:1, g:0},{n:MX.N, xmin:1, xmax:2, g:1}]); mixUI(); }
+function mixCounts(){ let a=0, ab=0, ar=0; for (let i=0;i<mix.x.length;i++) if (mix.x[i] < 1){ a++; if (mix.g[i]===0) ab++; else ar++; } return {a, ab, ar, b:2*MX.N - a}; }
+function entropies(){
+  const N = MX.N, st = MX.stage, same = MX.mode === 'same', C = MX.counted || mixCounts();
+  if (st === 0) return {full:0, label:0, arr:0};
+  if (st === 1 || st === 2) return same ? {full:2*N*LN2, label:lnC(2*N,N), arr:2*N*LN2 - lnC(2*N,N)} : {full:2*N*LN2, label:0, arr:2*N*LN2};
+  if (st === 3){
+    if (same){ const full = lnC(2*N, C.a), label = lnC(2*N, N); return {full, label, arr:full-label}; }
+    const full = lnC(N, C.ab) + lnC(N, C.ar); return {full, label:0, arr:full};
+  }
+  const label = same ? lnf(C.a) + lnf(C.b) - 2*lnf(N) : lnf(C.ab) + lnf(N-C.ab) + lnf(C.ar) + lnf(N-C.ar) - 2*lnf(N);
+  return {full:0, label, arr:-label};
+}
+const STAGES = {
+  same: [
+    ['Start: the labels in each box are known.', 'Each box holds <i>N</i> particles in volume <i>V</i>, and we know which <i>N</i> labels are in each. This is our reference point.'],
+    ['Hole open: every particle may be anywhere in 2<i>V</i>.', 'Once the gas has had time to spread, the equilibrium description puts every particle anywhere in the combined volume. The full entropy gains 2<i>N</i>&thinsp;<i>k</i><sub>B</sub>&thinsp;ln 2. Almost all of it is labeling entropy: we no longer know which labels are on which side. The arrangement entropy barely changes.'],
+    ['Hole closed, nobody looked.', 'Closing the hole supplies no information about where the particles are, so nothing changes. The same gas, at the same density, now carries 2<i>N</i>&thinsp;<i>k</i><sub>B</sub>&thinsp;ln 2 of label uncertainty.'],
+    ['Counted the particles in each box.', 'Learning only the numbers in each box removes the small uncertainty about the counts, so the arrangement entropy drops below its value at stage 2. The label uncertainty remains.'],
+    ['Read every label.', 'Now we know which particle is in which box, as at the start. The full entropy returns to its initial value: the decrease comes from information acquired, not from inserting a wall.']
+  ],
+  spec: [
+    ['Start: blue in box A, red in box B.', 'Colors are now physical species, so the arrangement records where each color is. Only identities within each color go unrecorded.'],
+    ['Hole open: the two species mix.', 'Once the gas has had time to spread, the full entropy gains 2<i>N</i>&thinsp;<i>k</i><sub>B</sub>&thinsp;ln 2, exactly as for the same gas, but now all of it is arrangement entropy: genuine mixing of two species.'],
+    ['Hole closed, nobody looked.', 'Each box holds an unknown mixture of blue and red. Nothing has been learned, so nothing changes.'],
+    ['Counted each color in each box.', 'The numbers of blue and red particles in each box are now known. The mixing entropy remains in the arrangement.'],
+    ['Read every label.', 'Knowing which particle is where returns the full entropy to its initial value.']
+  ]
+};
+function drawBars(E){
+  const svg = $('bars'); while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const M = Math.max(1e-9, 2*MX.N*LN2), x0 = 150, x1 = 440, zero = x0 + 0.12*(x1-x0);
+  const X = v => zero + v/M*(x1 - zero);
+  el('line',{x1:zero,x2:zero,y1:8,y2:168,style:'stroke:var(--muted);stroke-width:1'},svg);
+  el('line',{x1:X(M),x2:X(M),y1:8,y2:168,style:'stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3'},svg);
+  el('text',{x:X(M),y:184,'text-anchor':'end','font-size':11,style:'fill:var(--muted)'},svg,'2N ln 2 = '+M.toFixed(1));
+  el('text',{x:zero,y:184,'text-anchor':'middle','font-size':11,style:'fill:var(--muted)'},svg,'0');
+  [['Full', E.full, 'var(--full)'],['Labeling', E.label, 'var(--label)'],['Arrangement', E.arr, 'var(--arr)']].forEach(([name, v, col], i)=>{
+    const y = 22 + i*50;
+    el('text',{x:0,y:y+15,'font-size':13,'font-weight':600,style:'fill:var(--ink)'},svg,'ΔS '+name);
+    const a = Math.min(X(0), X(v)), b = Math.max(X(0), X(v));
+    el('rect',{x:a,y:y,width:Math.max(1.5,b-a),height:22,rx:3,style:`fill:${col}`},svg);
+    const txt = (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2);
+    const right = X(v) + 6 < x1 - 40;
+    el('text',{x: v >= 0 ? (right ? X(v)+6 : X(v)-6) : Math.min(X(0)+6, x1), y:y+16,'text-anchor': v >= 0 && !right ? 'end' : 'start','font-size':12.5,'font-weight':600,style: v >= 0 && !right ? 'fill:var(--panel)' : 'fill:var(--ink)'},svg,txt);
+  });
+}
+function mixUI(){
+  const st = MX.stage;
+  $('bOpen').disabled = st === 1; $('bClose').disabled = st !== 1; $('bCount').disabled = st !== 2; $('bCheck').disabled = !(st === 2 || st === 3);
+  [['bOpen', st===0||st>=2],['bClose', st===1],['bCount', st===2],['bCheck', st===3]].forEach(([id, p])=>$(id).classList.toggle('primary', p));
+  [...$('steps').children].forEach((s,i)=>s.classList.toggle('on', i === st));
+  const T = STAGES[MX.mode][st];
+  $('stageText').innerHTML = `<b>${T[0]}</b>${T[1]}`;
+  drawBars(entropies());
+}
+function mixCountsUI(){
+  const C = mixCounts();
+  $('cntA').textContent = `Box A: ${C.a} (blue ${C.ab}, red ${C.ar})`;
+  $('cntB').textContent = `Box B: ${C.b} (blue ${MX.N - C.ab}, red ${MX.N - C.ar})`;
+}
+$('bOpen').addEventListener('click', ()=>{ MX.stage = 1; MX.counted = null; mixUI(); });
+$('bClose').addEventListener('click', ()=>{ MX.stage = 2; mixUI(); });
+$('bCount').addEventListener('click', ()=>{ MX.stage = 3; MX.counted = mixCounts(); mixUI(); });
+$('bCheck').addEventListener('click', ()=>{ MX.stage = 4; MX.counted = mixCounts(); mixUI(); });
+$('bReset').addEventListener('click', mixReset);
+$('nMix').addEventListener('input', e=>{ MX.N = +e.target.value; $('nMixOut').textContent = MX.N; mixReset(); drawN(); });
+$('bFast').addEventListener('click', ()=>{ mix.fast = !mix.fast; $('bFast').setAttribute('aria-pressed', mix.fast); $('bFast').classList.toggle('primary', mix.fast); });
+$('bPauseMix').addEventListener('click', ()=>{ mix.running = !mix.running; $('bPauseMix').textContent = mix.running ? 'Pause' : 'Play'; });
+const setMode = m => { MX.mode = m; $('mSame').setAttribute('aria-pressed', m==='same'); $('mSpec').setAttribute('aria-pressed', m==='spec'); mixUI(); };
+$('mSame').addEventListener('click', ()=>setMode('same')); $('mSpec').addEventListener('click', ()=>setMode('spec'));
+
+/* ---------- N dependence ---------- */
+function drawN(){
+  const pts = [], pa = [];
+  for (let e = 0; e <= 6.0001; e += 0.02){ const N = Math.max(1, Math.round(Math.pow(10, e))); const f = lnC(2*N, N)/(2*N*LN2); pts.push([N, f]); pa.push([N, 1-f]); }
+  const N = MX.N, f = lnC(2*N, N)/(2*N*LN2);
+  plot($('plotN'), {xmin:1, xmax:1e6, xlog:true, ymin:0, ymax:1, xlabel:'Particles per box N', ylabel:'Fraction of 2N k_{B} ln 2',
+    series:[{pts, color:'var(--label)', width:2.6},{pts:pa, color:'var(--arr)', width:2.6}],
+    points:[{x:N, y:f, color:'var(--hl)', r:6},{x:N, y:1-f, color:'var(--hl)', r:6}]});
+}
+
+/* ---------- particle exchange ---------- */
+const EX = { N:80, f:0.30, hist:[], samples:0, frame:0 };
+const ex = new Gas($('exCanvas'), { partition:()=>2*EX.f });
+function exReset(){ ex.init([{n:EX.N, xmin:0, xmax:2, g:2}]); EX.hist = Array(EX.N+1).fill(0); EX.samples = 0; EX.sum = 0; exPlots(); }
+function exN1(){ let a = 0; for (let i=0;i<ex.x.length;i++) if (ex.x[i] < 2*EX.f) a++; return a; }
+function exPlots(){
+  const N = EX.N, f = EX.f, lr = Math.log(f/(1-f));
+  const P = []; for (let k=0;k<=N;k++) P.push(Math.exp(lnC(N,k) + k*Math.log(f) + (N-k)*Math.log(1-f)));
+  const pmax = Math.max(...P), hmax = EX.samples ? Math.max(...EX.hist)/EX.samples : 0;
+  const lo = Math.max(0, Math.floor(N*f - 4.5*Math.sqrt(N*f*(1-f)) - 2)), hi = Math.min(N, Math.ceil(N*f + 4.5*Math.sqrt(N*f*(1-f)) + 2));
+  plot($('plotP'), {xmin:lo-0.5, xmax:hi+0.5, ymin:0, ymax:Math.max(pmax, hmax)*1.15, xlabel:'Particles in region 1, N_{1}', ylabel:'Probability',
+    bars: EX.samples ? EX.hist.map((c,k)=>({x:k, y:c/EX.samples, w:0.9, color:'var(--blue)', op:0.55})).filter(b=>b.x>=lo&&b.x<=hi) : [],
+    series:[{pts:P.map((p,k)=>[k,p]).filter(p=>p[0]>=lo&&p[0]<=hi), color:'var(--ink)', width:2}]});
+  const Sarr = [], Ssp = [];
+  for (let k=0;k<=N;k++){ Sarr.push(k*lr - lnf(k) - lnf(N-k)); Ssp.push(k*lr); }
+  const ma = Math.max(...Sarr), ms = Math.max(...Ssp);
+  const A = Sarr.map((v,k)=>[k, v-ma]), B = Ssp.map((v,k)=>[k, v-ms]);
+  const ymin = Math.min(A[0][1], A[N][1], B[0][1], B[N][1]);
+  const kmax = Sarr.indexOf(ma);
+  plot($('plotS'), {xmin:0, xmax:N, ymin:Math.floor(ymin*1.05), ymax:0, xlabel:'Particles in region 1, N_{1}', ylabel:'S − S_{max} (units of k_{B})',
+    series:[{pts:B, color:'var(--trad)', width:2.4},{pts:A, color:'var(--arr)', width:2.6}],
+    vlines:[{x:kmax, color:'var(--arr)'}]});
+  $('exMax').textContent = `${kmax}  (N V₁/V = ${(N*f).toFixed(1)})`;
+  $('exSpec').textContent = f > 0.5 ? `N₁ = ${N} (all in region 1)` : (f < 0.5 ? 'N₁ = 0 (all in region 2)' : 'flat');
+  $('exAvg').textContent = EX.samples ? (EX.sum/EX.samples).toFixed(2) : '—';
+  $('exSamples').textContent = EX.samples;
+}
+$('fEx').addEventListener('input', e=>{ EX.f = +e.target.value; $('fExOut').textContent = EX.f.toFixed(2); EX.hist = Array(EX.N+1).fill(0); EX.samples = 0; EX.sum = 0; exPlots(); });
+$('nEx').addEventListener('input', e=>{ EX.N = +e.target.value; $('nExOut').textContent = EX.N; exReset(); });
+$('bClearEx').addEventListener('click', ()=>{ EX.hist = Array(EX.N+1).fill(0); EX.samples = 0; EX.sum = 0; exPlots(); });
+$('bPauseEx').addEventListener('click', ()=>{ ex.running = !ex.running; $('bPauseEx').textContent = ex.running ? 'Pause' : 'Play'; });
+
+/* ---------- milk ---------- */
+function milk(){
+  const f = +$('fMilk').value, xeq = 1 - f, r = Math.log(f/(1-f));
+  const xs = $('xMilk'); xs.max = xeq.toFixed(3); if (+xs.value > xeq) xs.value = xeq;
+  const x = +xs.value;
+  $('fMilkOut').textContent = f.toFixed(2); $('xMilkOut').textContent = x.toFixed(3);
+  const H = x => (x <= 0 ? 0 : -x*Math.log(x)) - (x >= 1 ? 0 : (1-x)*Math.log(1-x));
+  const xmax = Math.min(1, 2*xeq), pts = Array.from({length:301}, (_,i)=>xmax*i/300);
+  const trad = pts.map(x=>[x, -x*r]), arr = pts.map(x=>[x, H(x) - x*r]);
+  const lo = Math.min(...trad.map(p=>p[1]), ...arr.map(p=>p[1])), hi = Math.max(...arr.map(p=>p[1]));
+  plot($('plotMilk'), {xmin:0, xmax, ymin:lo*1.1, ymax:hi*1.25 + 0.02, xlabel:'Fraction crossed, x = N_{2}/N', ylabel:'ΔS / (N k_{B})',
+    series:[{pts:trad, color:'var(--trad)', width:2.4},{pts:arr, color:'var(--arr)', width:2.6}],
+    vlines:[{x:xeq, color:'var(--muted)'}],
+    points:[{x, y:-x*r, color:'var(--trad)', r:6},{x, y:H(x)-x*r, color:'var(--arr)', r:6}]});
+  $('milkTrad').textContent = (-x*r).toFixed(4); $('milkArr').textContent = (H(x)-x*r).toFixed(4); $('milkEq').textContent = 'x = ' + xeq.toFixed(2);
+}
+$('fMilk').addEventListener('input', milk); $('xMilk').addEventListener('input', milk);
+
+/* ---------- animation loop ---------- */
+const vis = new Map();
+if ('IntersectionObserver' in window){
+  const io = new IntersectionObserver(es => es.forEach(e => vis.set(e.target, e.isIntersecting)));
+  [$('mixCanvas'), $('exCanvas')].forEach(c => io.observe(c));
+}
+const seen = c => vis.has(c) ? vis.get(c) : true;
+let last = performance.now(), redrawBars = 0;
+function frame(t){
+  const dt = Math.min(0.05, (t - last)/1000); last = t;
+  if (seen(mix.c)){
+    if (mix.running){ const k = mix.fast ? 6 : 1; for (let i=0;i<k;i++) mix.step(dt); }
+    mix.draw(); mixCountsUI();
+  }
+  if (seen(ex.c)){
+    if (ex.running){ ex.step(dt*1.5);
+      if (++EX.frame % 8 === 0){ const n1 = exN1(); EX.hist[n1]++; EX.samples++; EX.sum += n1; if (EX.frame % 32 === 0) exPlots(); } }
+    ex.draw(); $('exN1').textContent = `Region 1: N₁ = ${exN1()}`; $('exN2').textContent = `Region 2: N₂ = ${EX.N - exN1()}`;
+  }
+  requestAnimationFrame(frame);
+}
+$('nMixOut').textContent = MX.N; $('fExOut').textContent = EX.f.toFixed(2); $('nExOut').textContent = EX.N;
+mixReset(); drawN(); exReset(); milk();
+requestAnimationFrame(frame);
+})();
+</script>
+<script>
+(() => {
+  // light/dark switch; the choice is remembered across all of the course demos
+  const btn = document.getElementById("themeBtn"), root = document.documentElement, mq = matchMedia("(prefers-color-scheme: dark)");
+  const SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>';
+  const MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>';
+  const current = () => root.dataset.theme || (mq.matches ? "dark" : "light");
+  const sync = () => { const dark = current() === "dark", label = dark ? "Switch to light mode" : "Switch to dark mode";
+    btn.innerHTML = dark ? SUN : MOON; btn.setAttribute("aria-label", label); btn.title = label; };
+  btn.addEventListener("click", () => { const next = current() === "dark" ? "light" : "dark"; root.dataset.theme = next;
+    try { localStorage.setItem("netsci-theme", next); } catch (e) {} sync(); });
+  mq.addEventListener("change", sync);
+  sync();
+})();
+</script>
+</body>
+</html>
