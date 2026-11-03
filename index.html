@@ -49,7 +49,8 @@ a{color:var(--blue)}
 :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 .lede{font-size:1.18rem;color:var(--muted);max-width:42rem;margin:.2rem 0 1.4rem}
 .course{font-family:var(--sans);font-size:.92rem;color:var(--muted);margin:1.2rem 52px 0 0}
-.mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}
+mjx-container[display="true"]{display:block;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:.2rem 0}
+mjx-assistive-mml{max-width:100%}
 button.theme-btn{position:fixed;z-index:20;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 12px);
   width:40px;height:40px;padding:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;
   background:var(--panel);color:var(--ink);border:1px solid var(--rule);box-shadow:0 1px 4px rgba(0,0,0,.12)}
@@ -244,7 +245,7 @@ footer li{margin:.35rem 0}
 <div class="prose">
 <h2>Colloids: where the traditional entropy fails</h2>
 <p>Swendsen pointed out that colloids make the problem concrete. Homogenized milk contains roughly \(10^{12}\) fat globules per liter. They are large enough to be classical and different enough from one another to be distinguishable, so a "traditional" entropy without \(1/N!\), \(S_{\rm trad} = Nk_B[\ln V + \tfrac32\ln(E/N) + X]\), seems natural. It makes wrong predictions.</p>
-<p><strong>Removing a wall in uniform milk.</strong> With equal densities on both sides, \(\Delta S_{\rm trad} = N_1k_B\ln(V/V_1) + N_2k_B\ln(V/V_2) > 0\), about \(7\times10^{11}\,k_B\) for equal halves. Reinserting the wall restores the same macrostate, so the traditional entropy would have to decrease. The arrangement entropy changes only by \(-k_B\ln P(N_1) \approx 14\,k_B\), the subleading cost of no longer knowing the exact counts.</p>
+<p><strong>Removing a wall in uniform milk.</strong> With equal densities on both sides, \(\Delta S_{\rm trad} = N_1k_B\ln(V/V_1)\) \(+\, N_2k_B\ln(V/V_2) > 0\), about \(7\times10^{11}\,k_B\) for equal halves. Reinserting the wall restores the same macrostate, so the traditional entropy would have to decrease. The arrangement entropy changes only by \(-k_B\ln P(N_1) \approx 14\,k_B\), the subleading cost of no longer knowing the exact counts.</p>
 <p><strong>Partially mixing whole milk with skim milk.</strong> Put whole milk in the larger volume \(V_1\) and skim milk in \(V_2\), open a hole briefly, and close it before mixing is complete. If \(N_2\) globules have crossed, the traditional entropy changes by \(-N_2k_B\ln(V_1/V_2) < 0\) for an obviously irreversible process. With \(x = N_2/N\), the arrangement entropy changes by</p>
 \[ \frac{\Delta S_{\rm arr}}{Nk_B} = -x\ln x - (1-x)\ln(1-x) - x\ln\frac{V_1}{V_2} > 0, \]
 <p>which grows until equilibrium, \(x = V_2/V\), as the second law requires.</p>
@@ -612,6 +613,10 @@ function frame(t){
 }
 drawMinis(); $('nMixOut').textContent = MX.N; $('fExOut').textContent = EX.f.toFixed(2); $('nExOut').textContent = EX.N;
 mixReset(); drawN(); exReset(); milk();
+// with reduced motion both simulations start paused (Play still works); follow later changes of the setting too
+const rmq = matchMedia('(prefers-reduced-motion: reduce)');
+const applyMotion = () => { const on = !rmq.matches; [[mix,'bPauseMix'],[ex,'bPauseEx']].forEach(([s,id]) => { s.running = on; $(id).textContent = on ? T.pause : T.play; }); };
+applyMotion(); if (rmq.addEventListener) rmq.addEventListener('change', applyMotion);
 requestAnimationFrame(frame);
 })();
 </script>

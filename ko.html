@@ -49,7 +49,8 @@ a{color:var(--blue)}
 :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 .lede{font-size:1.18rem;color:var(--muted);max-width:42rem;margin:.2rem 0 1.4rem}
 .course{font-family:var(--sans);font-size:.92rem;color:var(--muted);margin:1.2rem 52px 0 0}
-.mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}
+mjx-container[display="true"]{display:block;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:.2rem 0}
+mjx-assistive-mml{max-width:100%}
 button.theme-btn{position:fixed;z-index:20;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 12px);
   width:40px;height:40px;padding:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;
   background:var(--panel);color:var(--ink);border:1px solid var(--rule);box-shadow:0 1px 4px rgba(0,0,0,.12)}
@@ -244,7 +245,7 @@ footer li{margin:.35rem 0}
 <div class="prose">
 <h2>콜로이드: 전통적인 엔트로피가 틀리는 곳</h2>
 <p>Swendsen은 콜로이드가 이 문제를 구체적으로 보여준다고 지적했습니다. 균질화한 우유 1리터에는 지방구가 약 \(10^{12}\)개 들어 있습니다. 고전적으로 다룰 만큼 크고 서로 구별할 수 있을 만큼 다르므로, \(1/N!\)가 없는 "전통적인" 엔트로피 \(S_{\rm trad} = Nk_B[\ln V + \tfrac32\ln(E/N) + X]\)가 자연스러워 보입니다. 하지만 이 엔트로피는 틀린 예측을 합니다.</p>
-<p><strong>균일한 우유에서 벽 치우기.</strong> 양쪽 밀도가 같을 때 \(\Delta S_{\rm trad} = N_1k_B\ln(V/V_1) + N_2k_B\ln(V/V_2) > 0\)이고, 절반씩이면 약 \(7\times10^{11}\,k_B\)입니다. 벽을 다시 넣으면 같은 거시 상태로 돌아가므로 전통적인 엔트로피는 줄어들어야 합니다. 배치 엔트로피는 \(-k_B\ln P(N_1) \approx 14\,k_B\)만 변하는데, 이는 정확한 개수를 더 이상 모르게 된 데 따른 작은(하위 차수) 대가입니다.</p>
+<p><strong>균일한 우유에서 벽 치우기.</strong> 양쪽 밀도가 같을 때 \(\Delta S_{\rm trad} = N_1k_B\ln(V/V_1)\) \(+\, N_2k_B\ln(V/V_2) > 0\)이고, 절반씩이면 약 \(7\times10^{11}\,k_B\)입니다. 벽을 다시 넣으면 같은 거시 상태로 돌아가므로 전통적인 엔트로피는 줄어들어야 합니다. 배치 엔트로피는 \(-k_B\ln P(N_1) \approx 14\,k_B\)만 변하는데, 이는 정확한 개수를 더 이상 모르게 된 데 따른 작은(하위 차수) 대가입니다.</p>
 <p><strong>전유와 탈지유를 일부만 섞기.</strong> 더 큰 부피 \(V_1\)에 전유, \(V_2\)에 탈지유를 넣고, 구멍을 잠깐 열었다가 다 섞이기 전에 닫습니다. 지방구 \(N_2\)개가 건너갔다면, 명백히 비가역적인 과정인데도 전통적인 엔트로피는 \(-N_2k_B\ln(V_1/V_2) < 0\)만큼 변합니다. \(x = N_2/N\)이라 하면 배치 엔트로피의 변화는</p>
 \[ \frac{\Delta S_{\rm arr}}{Nk_B} = -x\ln x - (1-x)\ln(1-x) - x\ln\frac{V_1}{V_2} > 0 \]
 <p>이고, 열역학 제2법칙이 요구하는 대로 평형 \(x = V_2/V\)까지 커집니다.</p>
@@ -612,6 +613,10 @@ function frame(t){
 }
 drawMinis(); $('nMixOut').textContent = MX.N; $('fExOut').textContent = EX.f.toFixed(2); $('nExOut').textContent = EX.N;
 mixReset(); drawN(); exReset(); milk();
+// with reduced motion both simulations start paused (Play still works); follow later changes of the setting too
+const rmq = matchMedia('(prefers-reduced-motion: reduce)');
+const applyMotion = () => { const on = !rmq.matches; [[mix,'bPauseMix'],[ex,'bPauseEx']].forEach(([s,id]) => { s.running = on; $(id).textContent = on ? T.pause : T.play; }); };
+applyMotion(); if (rmq.addEventListener) rmq.addEventListener('change', applyMotion);
 requestAnimationFrame(frame);
 })();
 </script>
